@@ -52,11 +52,13 @@ For a more detailed description of the workflow and output files, see [MANUAL.md
 
 ## Citation
 
-If you use **opus2txt** in scientific work, please cite the archived software release on **Zenodo**.
+If you use **opus2txt** in scientific work, please cite the archived software release on Zenodo:
 
-[Zenodo](https://zenodo.org/)
+**Sebastiano Romi. opus2txt, version 1.0.0. Zenodo. https://doi.org/10.5281/zenodo.21921806**
 
-A machine-readable citation file is provided in [`CITATION.cff`](CITATION.cff). Once this repository is connected to Zenodo and the GitHub release is archived, the Zenodo DOI can be inserted here.
+[DOI: 10.5281/zenodo.21921806](https://doi.org/10.5281/zenodo.21921806)
+
+A machine-readable citation file is provided in [`CITATION.cff`](CITATION.cff).
 
 ## License
 
