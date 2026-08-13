@@ -1,17 +1,16 @@
 # opus2txt
 
-`opus2txt` is a cross-platform graphical utility for extracting data from Bruker OPUS spectroscopy files and exporting them as plain-text files.
+`opus2txt` is a graphical utility for converting selected data from Bruker OPUS spectroscopy files into plain-text files.
 
-## Features
+## What it does
 
-- Native system file dialogs through PySide6/Qt on Linux, Windows and macOS.
-- Batch selection of Bruker OPUS files (`.0` to `.4`).
-- Exports absorbance spectra to `ABS/`.
-- Exports single-ray/transmittance spectra to `SRay/`.
-- Exports OPUS metadata to `METADATA/`.
-- Remembers the directory of the most recently processed input file.
-- Starts from the user's home directory on first launch.
-- Rejects hidden files and paths containing components beginning with `.`.
+The program processes one or more Bruker OPUS files (`.0` to `.4`) and creates, when the corresponding data are available:
+
+- `ABS/<name>_ABS.txt` — absorbance spectrum with `wavenumber` and `absorbance` columns.
+- `SRay/<name>_SRay.txt` — single-ray spectrum with `wavenumber` and `transmittance` columns.
+- `METADATA/<name>_META.txt` — OPUS parameters and metadata reported by `brukeropus`.
+
+The `ABS`, `SRay`, and `METADATA` directories are created automatically inside the selected output directory.
 
 ## Requirements
 
@@ -42,15 +41,14 @@ The script contains PEP 723 dependency metadata, so recent versions of `pipx` ca
 pipx run ./opus2txt.py
 ```
 
-## Quick usage
+## Usage
 
 1. Launch `opus2txt.py`.
-2. Choose the destination directory.
-3. Select one or more OPUS files from the file dialog, which opens in the selected destination directory.
-4. The application creates `ABS`, `SRay`, and `METADATA` subdirectories as needed.
-5. A completion message is shown when conversion finishes.
+2. Select the directory where the converted files should be written.
+3. Select one or more Bruker OPUS files.
+4. The program extracts the available absorbance, single-ray, and metadata blocks and writes the corresponding text files.
 
-For additional details, see [MANUAL.md](MANUAL.md).
+For a more detailed description of the workflow and output files, see [MANUAL.md](MANUAL.md).
 
 ## Citation
 
