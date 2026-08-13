@@ -1,0 +1,135 @@
+name: Build desktop packages
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: "3.11"
+  PYINSTALLER_VERSION: "6.21.0"
+
+jobs:
+  linux:
+    name: Linux AppImage x86_64
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "pyinstaller==${PYINSTALLER_VERSION}" PySide6 brukeropus
+
+      - name: Build standalone application
+        run: python -m PyInstaller --noconfirm --clean --windowed --onedir --name opus2txt opus2txt.py
+
+      - name: Create AppDir
+        run: |
+          set -euxo pipefail
+          mkdir -p opus2txt.AppDir/usr/lib/opus2txt
+          cp -a dist/opus2txt/. opus2txt.AppDir/usr/lib/opus2txt/
+          cp packaging/linux/opus2txt.desktop opus2txt.AppDir/opus2txt.desktop
+          cp packaging/linux/opus2txt.svg opus2txt.AppDir/opus2txt.svg
+          cat > opus2txt.AppDir/AppRun <<'EOF'
+          #!/bin/sh
+          APPDIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+          exec "$APPDIR/usr/lib/opus2txt/opus2txt" "$@"
+          EOF
+          chmod +x opus2txt.AppDir/AppRun
+
+      - name: Build AppImage
+        run: |
+          set -euxo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          if [ "$VERSION" = "main" ]; then VERSION="dev"; fi
+          curl -L --fail --retry 3 \
+            -o appimagetool-x86_64.AppImage \
+            https://github.com/AppImage/appimagetool/releases/download/1.9.1/appimagetool-x86_64.AppImage
+          chmod +x appimagetool-x86_64.AppImage
+          APPIMAGE_EXTRACT_AND_RUN=1 ARCH=x86_64 \
+            ./appimagetool-x86_64.AppImage --no-appstream \
+            opus2txt.AppDir "opus2txt-${VERSION}-linux-x86_64.AppImage"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: opus2txt-linux-x86_64
+          path: opus2txt-*-linux-x86_64.AppImage
+          archive: false
+
+  windows:
+    name: Windows x86_64
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install build dependencies
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "pyinstaller==$env:PYINSTALLER_VERSION" PySide6 brukeropus
+
+      - name: Build standalone executable
+        shell: pwsh
+        run: |
+          python -m PyInstaller --noconfirm --clean --windowed --onefile --name opus2txt opus2txt.py
+          $version = $env:GITHUB_REF_NAME -replace '^v',''
+          if ($version -eq 'main') { $version = 'dev' }
+          Move-Item dist\opus2txt.exe "opus2txt-$version-windows-x86_64.exe"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: opus2txt-windows-x86_64
+          path: opus2txt-*-windows-x86_64.exe
+          archive: false
+
+  macos:
+    name: macOS ${{ matrix.arch }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15-intel
+            arch: x86_64
+          - runner: macos-15
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "pyinstaller==${PYINSTALLER_VERSION}" PySide6 brukeropus
+
+      - name: Build application bundle and DMG
+        run: |
+          set -euxo pipefail
+          python -m PyInstaller --noconfirm --clean --windowed --onedir --name opus2txt opus2txt.py
+          codesign --force --deep --sign - dist/opus2txt.app
+          VERSION="${GITHUB_REF_NAME#v}"
+          if [ "$VERSION" = "main" ]; then VERSION="dev"; fi
+          hdiutil create \
+            -volname "opus2txt" \
+            -srcfolder dist/opus2txt.app \
+            -ov -format UDZO \
+            "opus2txt-${VERSION}-macos-${{ matrix.arch }}.dmg"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: opus2txt-macos-${{ matrix.arch }}
+          path: opus2txt-*-macos-${{ matrix.arch }}.dmg
+          archive: false
