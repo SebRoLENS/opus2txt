@@ -6,5 +6,6 @@ authors:
     given-names: Sebastiano
 version: 1.0.0
 date-released: 2026-08-13
+doi: 10.5281/zenodo.21921806
 repository-code: https://github.com/SebRoLENS/opus2txt
 license: MIT
