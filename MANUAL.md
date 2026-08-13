@@ -9,13 +9,13 @@
 Using a dedicated virtual environment:
 
 ```bash
-~/.venv/opus2txt/bin/python opus2txt_v1.0.0.py
+~/.venv/opus2txt/bin/python opus2txt.py
 ```
 
 Or with a recent version of `pipx`:
 
 ```bash
-pipx run ./opus2txt_v1.0.0.py
+pipx run ./opus2txt.py
 ```
 
 ## Workflow
