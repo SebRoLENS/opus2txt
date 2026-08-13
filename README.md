@@ -16,12 +16,10 @@ The `ABS`, `SRay`, and `METADATA` directories are created automatically inside t
 
 Pre-built desktop packages are available for users who do not want to install Python or use the command line:
 
-- **Linux x86_64** — AppImage
-- **Windows x86_64** — standalone `.exe`
-- **macOS Apple Silicon** — `.dmg`
-- **macOS Intel** — `.dmg`
-
-Published application packages are distributed through the [GitHub Releases](https://github.com/SebRoLENS/opus2txt/releases) page.
+- **[Linux x86_64 — AppImage](https://github.com/SebRoLENS/opus2txt/releases/latest)**
+- **[Windows x86_64 — standalone `.exe`](https://github.com/SebRoLENS/opus2txt/releases/latest)**
+- **[macOS Apple Silicon — `.dmg`](https://github.com/SebRoLENS/opus2txt/releases/latest)**
+- **[macOS Intel — `.dmg`](https://github.com/SebRoLENS/opus2txt/releases/latest)**
 
 **The Linux build is cryptographically attested using open infrastructure; Windows and macOS builds remain unsigned because platform-trusted signing requires paid developer credentials, so they may display security warnings.**
 
