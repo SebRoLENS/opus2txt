@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+title: opus2txt
+type: software
+authors:
+  - family-names: Romi
+    given-names: Sebastiano
+version: 1.0.0
+date-released: 2026-08-13
+repository-code: https://github.com/SebRoLENS/opus2txt
+license: MIT
