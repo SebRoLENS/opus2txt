@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=opus2txt
+Comment=Convert Bruker OPUS spectroscopy files to plain-text spectra and metadata
+Exec=opus2txt
+Icon=opus2txt
+Terminal=false
+Categories=Science;Utility;
