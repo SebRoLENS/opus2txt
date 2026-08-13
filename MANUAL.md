@@ -4,25 +4,43 @@
 
 `opus2txt` converts selected data blocks from Bruker OPUS spectroscopy files into simple tab-separated text files suitable for plotting, fitting, spreadsheet, or scientific-analysis software.
 
-## Starting the application
+## Download and start the application
 
-Using a dedicated virtual environment:
+Pre-built desktop applications are available from the [latest GitHub Release](https://github.com/SebRoLENS/opus2txt/releases/latest). These packages include the required runtime and dependencies, so Python, PySide6, and `brukeropus` do not need to be installed separately.
 
-```bash
-~/.venv/opus2txt/bin/python opus2txt.py
-```
+Available packages:
 
-Or with a recent version of `pipx`:
+- **[Linux x86_64 — AppImage](https://github.com/SebRoLENS/opus2txt/releases/latest)**
+- **[Windows x86_64 — standalone `.exe`](https://github.com/SebRoLENS/opus2txt/releases/latest)**
+- **[macOS Apple Silicon — `.dmg`](https://github.com/SebRoLENS/opus2txt/releases/latest)**
+- **[macOS Intel — `.dmg`](https://github.com/SebRoLENS/opus2txt/releases/latest)**
 
-```bash
-pipx run ./opus2txt.py
-```
+### Linux
+
+Download the AppImage corresponding to the current release. If required by the desktop environment, mark the file as executable in its file properties, then open it normally.
+
+The Linux AppImage is cryptographically attested through the project's GitHub Actions build process.
+
+### Windows
+
+Download the `.exe` file and open it normally. No installation is required.
+
+The Windows build is currently unsigned, so Windows may display a security warning when the application is opened for the first time.
+
+### macOS
+
+Download the `.dmg` matching the Mac architecture:
+
+- `arm64` for Apple Silicon Macs.
+- `x86_64` for Intel Macs.
+
+Open the DMG and launch `opus2txt`. The macOS builds are currently unsigned, so macOS may display a security warning when the application is opened for the first time.
 
 ## Workflow
 
 ### 1. Select the output folder
 
-Press **Select and convert**. The first dialog asks for the output directory. On first launch the dialog starts from the user's home directory. After successful conversions, opus2txt remembers the location of the most recently processed OPUS input file for future launches.
+Press **Select and convert**. The first dialog asks for the output directory. On first launch the dialog starts from the user's home directory. After successful conversions, `opus2txt` remembers the location of the most recently processed OPUS input file for future launches.
 
 Paths containing hidden components (names beginning with `.`) are rejected.
 
@@ -34,7 +52,7 @@ Hidden files and unsupported extensions are ignored.
 
 ### 3. Generated files
 
-For each selected OPUS file, opus2txt creates up to three output types.
+For each selected OPUS file, `opus2txt` creates up to three output types.
 
 #### ABS
 
@@ -80,17 +98,39 @@ The `ABS`, `SRay`, and `METADATA` directories are created automatically when nee
 
 If an OPUS file cannot be read or converted, the application displays an error message identifying the file. Other selected files continue to be processed.
 
-## Platform support
+## Running from source
 
-The graphical interface uses PySide6/Qt. Qt requests the native platform file dialog when available, allowing integration with Linux desktop environments and the normal system dialogs on Windows and macOS.
+Running from source is optional and intended for users who want to inspect, modify, or develop the program.
 
-## Dependencies
+### Dependencies
 
 ```text
 Python >= 3.10
 PySide6
 brukeropus
 ```
+
+### Virtual environment
+
+Using a dedicated virtual environment:
+
+```bash
+python3 -m venv ~/.venv/opus2txt
+~/.venv/opus2txt/bin/python -m pip install PySide6 brukeropus
+~/.venv/opus2txt/bin/python opus2txt.py
+```
+
+### pipx
+
+With a recent version of `pipx`:
+
+```bash
+pipx run ./opus2txt.py
+```
+
+## Platform support
+
+The graphical interface uses PySide6/Qt. Qt requests the native platform file dialog when available, allowing integration with Linux desktop environments and the normal system dialogs on Windows and macOS.
 
 ## Citation
 
