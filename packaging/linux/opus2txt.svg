@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#2f6feb"/>
+  <path d="M90 328c54-12 75-111 128-111 48 0 61 76 102 76 39 0 57-54 102-76" fill="none" stroke="#ffffff" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M90 388h332" stroke="#ffffff" stroke-width="22" stroke-linecap="round" opacity="0.9"/>
+  <text x="256" y="155" text-anchor="middle" font-family="sans-serif" font-size="76" font-weight="700" fill="#ffffff">OPUS</text>
+</svg>
