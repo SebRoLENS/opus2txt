@@ -17,6 +17,10 @@ jobs:
   linux:
     name: Linux AppImage x86_64
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
@@ -46,22 +50,30 @@ jobs:
           chmod +x opus2txt.AppDir/AppRun
 
       - name: Build AppImage
+        id: appimage
         run: |
           set -euxo pipefail
           VERSION="${GITHUB_REF_NAME#v}"
           if [ "$VERSION" = "main" ]; then VERSION="dev"; fi
+          APPIMAGE="opus2txt-${VERSION}-linux-x86_64.AppImage"
           curl -L --fail --retry 3 \
             -o appimagetool-x86_64.AppImage \
             https://github.com/AppImage/appimagetool/releases/download/1.9.1/appimagetool-x86_64.AppImage
           chmod +x appimagetool-x86_64.AppImage
           APPIMAGE_EXTRACT_AND_RUN=1 ARCH=x86_64 \
             ./appimagetool-x86_64.AppImage --no-appstream \
-            opus2txt.AppDir "opus2txt-${VERSION}-linux-x86_64.AppImage"
+            opus2txt.AppDir "$APPIMAGE"
+          echo "path=$APPIMAGE" >> "$GITHUB_OUTPUT"
+
+      - name: Attest Linux AppImage
+        uses: actions/attest@v4
+        with:
+          subject-path: ${{ steps.appimage.outputs.path }}
 
       - uses: actions/upload-artifact@v7
         with:
           name: opus2txt-linux-x86_64
-          path: opus2txt-*-linux-x86_64.AppImage
+          path: ${{ steps.appimage.outputs.path }}
           archive: false
 
   windows:
