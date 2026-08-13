@@ -12,13 +12,26 @@ The program processes one or more Bruker OPUS files (`.0` to `.4`) and creates, 
 
 The `ABS`, `SRay`, and `METADATA` directories are created automatically inside the selected output directory.
 
-## Requirements
+## Desktop applications
+
+Pre-built desktop packages are available for users who do not want to install Python or use the command line:
+
+- **Linux x86_64** — AppImage
+- **Windows x86_64** — standalone `.exe`
+- **macOS Apple Silicon** — `.dmg`
+- **macOS Intel** — `.dmg`
+
+Published application packages are distributed through the [GitHub Releases](https://github.com/SebRoLENS/opus2txt/releases) page.
+
+The current desktop packages are not code-signed, so Windows SmartScreen or macOS Gatekeeper may display a security warning when opening them for the first time.
+
+## Running from source
+
+### Requirements
 
 - Python 3.10 or newer
 - `brukeropus`
 - `PySide6`
-
-## Installation
 
 ### Virtual environment
 
@@ -43,7 +56,7 @@ pipx run ./opus2txt.py
 
 ## Usage
 
-1. Launch `opus2txt.py`.
+1. Launch the desktop application or `opus2txt.py`.
 2. Select the directory where the converted files should be written.
 3. Select one or more Bruker OPUS files.
 4. The program extracts the available absorbance, single-ray, and metadata blocks and writes the corresponding text files.
