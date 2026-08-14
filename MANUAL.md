@@ -15,6 +15,8 @@ Available packages:
 - **[macOS Apple Silicon — `.dmg`](https://github.com/SebRoLENS/opus2txt/releases/latest)**
 - **[macOS Intel — `.dmg`](https://github.com/SebRoLENS/opus2txt/releases/latest)**
 
+Older versions remain available from the [complete GitHub Releases archive](https://github.com/SebRoLENS/opus2txt/releases).
+
 ### Linux
 
 Download the AppImage corresponding to the current release. If required by the desktop environment, mark the file as executable in its file properties, then open it normally.
