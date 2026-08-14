@@ -2,12 +2,17 @@ name: Build desktop packages
 
 on:
   workflow_dispatch:
+    inputs:
+      source_ref:
+        description: 'Tag, branch, or commit to build (defaults to the triggering ref)'
+        required: false
+        default: ''
   push:
     tags:
-      - 'v*'
+      - 'v*.*.*'
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   PYTHON_VERSION: "3.11"
@@ -23,9 +28,24 @@ jobs:
       attestations: write
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.source_ref || github.ref }}
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Read application version
+        run: |
+          VERSION="$(python - <<'PY'
+          import re
+          from pathlib import Path
+          match = re.search(r'^__version__\s*=\s*"([^"]+)"', Path('opus2txt.py').read_text(), re.M)
+          if not match:
+              raise SystemExit('Version not found')
+          print(match.group(1))
+          PY
+          )"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Install build dependencies
         run: |
@@ -42,6 +62,7 @@ jobs:
           cp -a dist/opus2txt/. opus2txt.AppDir/usr/lib/opus2txt/
           cp packaging/linux/opus2txt.desktop opus2txt.AppDir/opus2txt.desktop
           cp packaging/linux/opus2txt.svg opus2txt.AppDir/opus2txt.svg
+          cp packaging/linux/opus2txt.svg opus2txt.AppDir/.DirIcon
           cat > opus2txt.AppDir/AppRun <<'EOF'
           #!/bin/sh
           APPDIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
@@ -53,8 +74,6 @@ jobs:
         id: appimage
         run: |
           set -euxo pipefail
-          VERSION="${GITHUB_REF_NAME#v}"
-          if [ "$VERSION" = "main" ]; then VERSION="dev"; fi
           APPIMAGE="opus2txt-${VERSION}-linux-x86_64.AppImage"
           curl -L --fail --retry 3 \
             -o appimagetool-x86_64.AppImage \
@@ -63,6 +82,7 @@ jobs:
           APPIMAGE_EXTRACT_AND_RUN=1 ARCH=x86_64 \
             ./appimagetool-x86_64.AppImage --no-appstream \
             opus2txt.AppDir "$APPIMAGE"
+          chmod +x "$APPIMAGE"
           echo "path=$APPIMAGE" >> "$GITHUB_OUTPUT"
 
       - name: Attest Linux AppImage
@@ -72,18 +92,29 @@ jobs:
 
       - uses: actions/upload-artifact@v7
         with:
-          name: opus2txt-linux-x86_64
+          name: desktop-linux-x86_64
           path: ${{ steps.appimage.outputs.path }}
           archive: false
+          if-no-files-found: error
 
   windows:
     name: Windows x86_64
     runs-on: windows-2025
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.source_ref || github.ref }}
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Read application version
+        shell: pwsh
+        run: |
+          $match = Get-Content opus2txt.py | Select-String '^__version__\s*=\s*"([^"]+)"' | Select-Object -First 1
+          if (-not $match) { throw 'Version not found' }
+          $version = $match.Matches[0].Groups[1].Value
+          "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Install build dependencies
         shell: pwsh
@@ -95,15 +126,14 @@ jobs:
         shell: pwsh
         run: |
           python -m PyInstaller --noconfirm --clean --windowed --onefile --name opus2txt opus2txt.py
-          $version = $env:GITHUB_REF_NAME -replace '^v',''
-          if ($version -eq 'main') { $version = 'dev' }
-          Move-Item dist\opus2txt.exe "opus2txt-$version-windows-x86_64.exe"
+          Move-Item dist\opus2txt.exe "opus2txt-$env:VERSION-windows-x86_64.exe"
 
       - uses: actions/upload-artifact@v7
         with:
-          name: opus2txt-windows-x86_64
-          path: opus2txt-*-windows-x86_64.exe
+          name: desktop-windows-x86_64
+          path: opus2txt-${{ env.VERSION }}-windows-x86_64.exe
           archive: false
+          if-no-files-found: error
 
   macos:
     name: macOS ${{ matrix.arch }}
@@ -118,9 +148,16 @@ jobs:
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.source_ref || github.ref }}
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Read application version
+        run: |
+          VERSION="$(python -c 'import re,pathlib; text=pathlib.Path("opus2txt.py").read_text(); print(re.search(r"^__version__\s*=\s*\"([^\"]+)\"", text, re.M).group(1))')"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Install build dependencies
         run: |
@@ -132,8 +169,6 @@ jobs:
           set -euxo pipefail
           python -m PyInstaller --noconfirm --clean --windowed --onedir --name opus2txt opus2txt.py
           codesign --force --deep --sign - dist/opus2txt.app
-          VERSION="${GITHUB_REF_NAME#v}"
-          if [ "$VERSION" = "main" ]; then VERSION="dev"; fi
           hdiutil create \
             -volname "opus2txt" \
             -srcfolder dist/opus2txt.app \
@@ -142,6 +177,33 @@ jobs:
 
       - uses: actions/upload-artifact@v7
         with:
-          name: opus2txt-macos-${{ matrix.arch }}
-          path: opus2txt-*-macos-${{ matrix.arch }}.dmg
+          name: desktop-macos-${{ matrix.arch }}
+          path: opus2txt-${{ env.VERSION }}-macos-${{ matrix.arch }}.dmg
           archive: false
+          if-no-files-found: error
+
+  publish-release-assets:
+    name: Attach desktop builds to tagged release
+    if: startsWith(github.ref, 'refs/tags/') || startsWith(inputs.source_ref, 'v')
+    needs: [linux, windows, macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: desktop-*
+          path: release-assets
+          merge-multiple: true
+
+      - name: Generate SHA-256 checksums
+        run: |
+          cd release-assets
+          sha256sum * > SHA256SUMS.txt
+
+      - name: Upload binaries to GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ inputs.source_ref || github.ref_name }}
+          files: release-assets/*
+          fail_on_unmatched_files: true
