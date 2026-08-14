@@ -18,6 +18,16 @@ README = ROOT / "README.md"
 CITATION = ROOT / "CITATION.cff"
 
 VERSION_RE = re.compile(r'^__version__\s*=\s*"(\d+\.\d+\.\d+)"', re.M)
+VERSION_BADGE_RE = re.compile(
+    r"^\[!\[(?:Latest release|Version)\]\([^)]+\)\]\([^)]+\)[ \t]*$", re.M
+)
+DOI_BADGE_RE = re.compile(
+    r"^\[!\[DOI\]\([^)]+\)\]\([^)]+\)[ \t]*$", re.M
+)
+VERSION_BADGE = (
+    "[![Version](https://img.shields.io/github/v/release/SebRoLENS/opus2txt)]"
+    "(https://github.com/SebRoLENS/opus2txt/releases/latest)"
+)
 
 
 def current_version() -> str:
@@ -57,7 +67,7 @@ def zenodo_records(query: str) -> list[dict]:
         url,
         headers={
             "Accept": "application/json",
-            "User-Agent": "opus2txt-release-bot/1.0",
+            "User-Agent": "opus2txt-release-bot/1.1",
         },
     )
     try:
@@ -133,17 +143,30 @@ def replace_section(text: str, heading: str, next_heading: str, body: str) -> st
     return pattern.sub(body.rstrip() + "\n\n", text, count=1)
 
 
+def set_readme_badges(text: str, doi: str) -> str:
+    doi_url = f"https://doi.org/{doi}"
+    doi_badge = f"[![DOI](https://zenodo.org/badge/DOI/{doi}.svg)]({doi_url})"
+
+    if VERSION_BADGE_RE.search(text):
+        text = VERSION_BADGE_RE.sub(VERSION_BADGE, text, count=1)
+    else:
+        title = "# opus2txt\n"
+        if title not in text:
+            raise SystemExit("Could not find opus2txt README title")
+        text = text.replace(title, title + "\n" + VERSION_BADGE + "\n", 1)
+
+    if DOI_BADGE_RE.search(text):
+        text = DOI_BADGE_RE.sub(doi_badge, text, count=1)
+    else:
+        text = text.replace(VERSION_BADGE, VERSION_BADGE + "\n" + doi_badge, 1)
+    return text
+
+
 def apply_metadata(version: str, doi: str) -> None:
     doi_url = f"https://doi.org/{doi}"
 
     readme = README.read_text()
-    readme = re.sub(
-        r"^\[!\[(?:DOI|Latest release)\]\([^)]+\)\]\([^)]+\)[ \t]*$",
-        f"[![DOI](https://zenodo.org/badge/DOI/{doi}.svg)]({doi_url})",
-        readme,
-        count=1,
-        flags=re.M,
-    )
+    readme = set_readme_badges(readme, doi)
 
     citation = f"""## How to cite
 
