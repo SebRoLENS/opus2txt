@@ -1,6 +1,6 @@
 # opus2txt User Manual
 
-**Current manual version: 1.0.1**
+**Current manual version: 1.0.2**
 
 ## Purpose
 
