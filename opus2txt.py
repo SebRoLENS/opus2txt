@@ -203,13 +203,13 @@ class MainWindow(QMainWindow):
         layout.addWidget(subtitle)
 
         info = QLabel(
-            "Select one or more OPUS files, then choose the output folder."
+            "Select one or more OPUS files, then choose the output folder. New folders will be created"
         )
         info.setWordWrap(True)
         info.setObjectName("info")
         layout.addWidget(info)
 
-        outputs = QLabel("Outputs:  ABS  ·  SRay  ·  METADATA")
+        outputs = QLabel("Outputs in folders:  ABS (absorbance) ·  SRay (single ray) ·  METADATA")
         outputs.setObjectName("outputs")
         layout.addWidget(outputs)
 
