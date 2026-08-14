@@ -29,6 +29,11 @@ jobs:
           ref: main
           fetch-depth: 2
 
+      - name: Install manual build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc texlive-xetex texlive-latex-extra texlive-fonts-recommended
+
       - name: Prepare next version
         id: prepare
         run: |
@@ -36,13 +41,20 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Preparing opus2txt v$VERSION"
 
+      - name: Build versioned PDF manual
+        run: |
+          pandoc MANUAL.md \
+            --from markdown \
+            --pdf-engine=xelatex \
+            --output MANUAL.pdf
+
       - name: Commit release metadata
         id: commit
         run: |
           VERSION="${{ steps.prepare.outputs.version }}"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add opus2txt.py README.md CITATION.cff
+          git add opus2txt.py README.md CITATION.cff MANUAL.md MANUAL.pdf
           git commit -m "Prepare v${VERSION} release"
           git push origin HEAD:main
           SHA="$(git rev-parse HEAD)"
