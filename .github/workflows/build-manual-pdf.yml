@@ -1,6 +1,7 @@
 name: Build manual PDF
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -37,7 +38,7 @@ jobs:
 
       - name: Commit regenerated PDF
         run: |
-          if git diff --quiet -- MANUAL.pdf; then
+          if [ -z "$(git status --porcelain -- MANUAL.pdf)" ]; then
             echo 'PDF is already up to date.'
             exit 0
           fi
