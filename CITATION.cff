@@ -1,11 +1,13 @@
 cff-version: 1.2.0
-title: opus2txt
+message: "If you use opus2txt in your research, please cite this software."
+title: "opus2txt"
 type: software
 authors:
   - family-names: Romi
-    given-names: Sebastiano
-version: 1.0.0
+    given-names: S.
+version: "1.0.0"
 date-released: 2026-08-13
-doi: 10.5281/zenodo.21921806
-repository-code: https://github.com/SebRoLENS/opus2txt
+doi: "10.5281/zenodo.21921806"
+repository-code: "https://github.com/SebRoLENS/opus2txt"
+url: "https://doi.org/10.5281/zenodo.21921806"
 license: MIT
