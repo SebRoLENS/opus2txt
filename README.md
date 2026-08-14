@@ -1,6 +1,27 @@
 # opus2txt
 
-`opus2txt` is a graphical utility for converting selected data from Bruker OPUS spectroscopy files into plain-text files.
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21921806.svg)](https://doi.org/10.5281/zenodo.21921806)
+
+`opus2txt` is a graphical utility for converting selected data from Bruker OPUS spectroscopy files into simple plain-text datasets.
+
+## Download and run
+
+For most users, the easiest way to use opus2txt is through the pre-built desktop application.
+
+**No Python installation, terminal, PySide6, or separate `brukeropus` installation is required when using the packaged applications.**
+
+**[Download the latest release](https://github.com/SebRoLENS/opus2txt/releases/latest)**
+
+Looking for an older version? **[Browse all releases and previous versions](https://github.com/SebRoLENS/opus2txt/releases)**.
+
+Available builds:
+
+- **Linux x86_64:** AppImage
+- **Windows x86_64:** standalone `.exe`
+- **macOS Apple Silicon:** `.dmg`
+- **macOS Intel x86_64:** `.dmg`
+
+The Linux AppImage is cryptographically attested using open infrastructure. Windows and macOS builds remain unsigned because platform-trusted signing requires paid developer credentials, so they may display security warnings on first launch.
 
 ## What it does
 
@@ -12,46 +33,6 @@ The program processes one or more Bruker OPUS files (`.0` to `.4`) and creates, 
 
 The `ABS`, `SRay`, and `METADATA` directories are created automatically inside the selected output directory.
 
-## Desktop applications
-
-Pre-built desktop packages are available for users who do not want to install Python or use the command line:
-
-- **[Linux x86_64 — AppImage](https://github.com/SebRoLENS/opus2txt/releases/latest)**
-- **[Windows x86_64 — standalone `.exe`](https://github.com/SebRoLENS/opus2txt/releases/latest)**
-- **[macOS Apple Silicon — `.dmg`](https://github.com/SebRoLENS/opus2txt/releases/latest)**
-- **[macOS Intel — `.dmg`](https://github.com/SebRoLENS/opus2txt/releases/latest)**
-
-**The Linux build is cryptographically attested using open infrastructure; Windows and macOS builds remain unsigned because platform-trusted signing requires paid developer credentials, so they may display security warnings.**
-
-## Running from source
-
-### Requirements
-
-- Python 3.10 or newer
-- `brukeropus`
-- `PySide6`
-
-### Virtual environment
-
-```bash
-python3 -m venv ~/.venv/opus2txt
-~/.venv/opus2txt/bin/python -m pip install PySide6 brukeropus
-```
-
-Run with:
-
-```bash
-~/.venv/opus2txt/bin/python opus2txt.py
-```
-
-### pipx
-
-The script contains PEP 723 dependency metadata, so recent versions of `pipx` can run it directly:
-
-```bash
-pipx run ./opus2txt.py
-```
-
 ## Usage
 
 1. Launch the desktop application or `opus2txt.py`.
@@ -59,16 +40,51 @@ pipx run ./opus2txt.py
 3. Select one or more Bruker OPUS files.
 4. The program extracts the available absorbance, single-ray, and metadata blocks and writes the corresponding text files.
 
-For a more detailed description of the workflow and output files, see [MANUAL.md](MANUAL.md).
+## Running from source
 
-## Citation
+Running from source is optional and intended for users who want to inspect, modify, or develop the program.
 
-If you use **opus2txt** in scientific work, please cite:
+Requirements:
 
-**Romi, S. (2026). opus2txt (Version 1.0.0) [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.21921806**
+- Python 3.10 or newer
+- `PySide6`
+- `brukeropus`
 
-A machine-readable citation file is provided in [`CITATION.cff`](CITATION.cff).
+Using a virtual environment:
+
+```bash
+python3 -m venv ~/.venv/opus2txt
+~/.venv/opus2txt/bin/python -m pip install PySide6 brukeropus
+~/.venv/opus2txt/bin/python opus2txt.py
+```
+
+The script also contains PEP 723 dependency metadata, so recent versions of `pipx` can run it directly:
+
+```bash
+pipx run ./opus2txt.py
+```
+
+## Documentation
+
+Detailed usage documentation is available in:
+
+- [`MANUAL.md`](MANUAL.md)
+- [PDF manual](MANUAL.pdf)
+
+## Version
+
+Current public version: **1.0.0**
+
+## How to cite
+
+If opus2txt contributes to published research, please acknowledge or cite the software. GitHub also provides a **Cite this repository** entry from [`CITATION.cff`](CITATION.cff).
+
+> Romi, S. (2026). *opus2txt* (Version 1.0.0) [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.21921806
+
+DOI: [**10.5281/zenodo.21921806**](https://doi.org/10.5281/zenodo.21921806)
+
+Previous releases remain archived separately on Zenodo.
 
 ## License
 
-This project is released under the MIT License. See [LICENSE](LICENSE).
+This project is released under the MIT License. See [`LICENSE`](LICENSE).
