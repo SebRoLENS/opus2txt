@@ -56,7 +56,6 @@ __version__ = "1.0.0"
 
 APP_NAME = "OPUS2TXT"
 ORGANIZATION_NAME = "opus2txt"
-OPUS_EXTENSIONS = {".0", ".1", ".2", ".3", ".4"}
 
 
 def has_dot_hidden_component(path: str | Path) -> bool:
@@ -102,6 +101,12 @@ def valid_start_directory(path: str | Path | None) -> Path:
         if directory.is_dir() and not has_dot_hidden_component(directory):
             return directory
     return Path.home()
+
+
+def has_numeric_extension(path: str | Path) -> bool:
+    """Return True for filenames whose final extension is made only of digits."""
+    suffix = Path(path).suffix
+    return len(suffix) > 1 and suffix[1:].isdigit()
 
 
 def process_opus_file(input_file: str, output_dir: str) -> None:
@@ -198,8 +203,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(subtitle)
 
         info = QLabel(
-            "Choose an output folder first, then select one or more OPUS files. "
-            "The file chooser will open directly in the output folder."
+            "Select one or more OPUS files, then choose the output folder."
         )
         info.setWordWrap(True)
         info.setObjectName("info")
@@ -255,7 +259,7 @@ class MainWindow(QMainWindow):
                 border-radius: 16px;
             }
             QLabel#subtitle {
-                color: palette(mid);
+                color: palette(text);
                 font-size: 14px;
             }
             QLabel#info {
@@ -264,7 +268,7 @@ class MainWindow(QMainWindow):
                 margin-top: 6px;
             }
             QLabel#outputs, QLabel#status {
-                color: palette(mid);
+                color: palette(text);
                 font-size: 12px;
             }
             QPushButton {
@@ -287,8 +291,8 @@ class MainWindow(QMainWindow):
             """
         )
 
-    def choose_output_directory(self) -> str | None:
-        start_dir = self.last_input_directory()
+    def choose_output_directory(self, start_dir: str | Path) -> str | None:
+        start_dir = valid_start_directory(start_dir)
 
         # QFileDialog uses the native platform dialog by default when available.
         selected = QFileDialog.getExistingDirectory(
@@ -311,13 +315,16 @@ class MainWindow(QMainWindow):
 
         return selected
 
-    def choose_opus_files(self, output_dir: str) -> list[str]:
-        # IMPORTANT: this dialog starts exactly in the output directory just selected.
+    def choose_opus_files(self) -> list[str]:
+        start_dir = self.last_input_directory()
+
+        # Open the file picker directly. The wildcard shows files whose final
+        # extension starts with a digit; exact numeric-only validation is done below.
         file_paths, _ = QFileDialog.getOpenFileNames(
             self,
             "Select OPUS files",
-            output_dir,
-            "Bruker OPUS files (*.0 *.1 *.2 *.3 *.4);;All files (*)",
+            str(start_dir),
+            "Bruker OPUS files (*.[0-9]*);;All files (*)",
         )
 
         if not file_paths:
@@ -331,7 +338,7 @@ class MainWindow(QMainWindow):
             if (
                 has_dot_hidden_component(path)
                 or not path.is_file()
-                or path.suffix.lower() not in OPUS_EXTENSIONS
+                or not has_numeric_extension(path)
             ):
                 ignored.append(path.name)
                 continue
@@ -344,25 +351,27 @@ class MainWindow(QMainWindow):
             QMessageBox.information(
                 self,
                 "Files ignored",
-                "Hidden or unsupported files were ignored:\n\n" + preview,
+                "Hidden files or files without a numeric extension were ignored:\n\n"
+                + preview,
             )
 
         return accepted
 
     def select_and_convert(self) -> None:
-        self.status_label.setText("Selecting output folder…")
+        # First and immediately: choose the OPUS input files.
+        self.status_label.setText("Selecting OPUS files…")
         QApplication.processEvents()
-
-        output_dir = self.choose_output_directory()
-        if not output_dir:
+        file_paths = self.choose_opus_files()
+        if not file_paths:
             self.status_label.setText("Ready")
             return
 
-        self.status_label.setText("Selecting OPUS files…")
+        # Only after files have been selected: choose where to write the output.
+        self.status_label.setText("Selecting output folder…")
         QApplication.processEvents()
-
-        file_paths = self.choose_opus_files(output_dir)
-        if not file_paths:
+        output_start_dir = Path(file_paths[0]).parent
+        output_dir = self.choose_output_directory(output_start_dir)
+        if not output_dir:
             self.status_label.setText("Ready")
             return
 
