@@ -87,7 +87,7 @@ jobs:
         with:
           subject-path: ${{ steps.appimage.outputs.path }}
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: desktop-linux-x86_64
           path: ${{ steps.appimage.outputs.path }}
@@ -124,7 +124,7 @@ jobs:
           python -m PyInstaller --noconfirm --clean --windowed --onefile --name opus2txt opus2txt.py
           Move-Item dist\opus2txt.exe "opus2txt-$env:VERSION-windows-x86_64.exe"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: desktop-windows-x86_64
           path: opus2txt-${{ env.VERSION }}-windows-x86_64.exe
@@ -170,7 +170,7 @@ jobs:
             -ov -format UDZO \
             "opus2txt-${VERSION}-macos-${{ matrix.arch }}.dmg"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: desktop-macos-${{ matrix.arch }}
           path: opus2txt-${{ env.VERSION }}-macos-${{ matrix.arch }}.dmg
@@ -184,7 +184,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           pattern: desktop-*
           path: release-assets
