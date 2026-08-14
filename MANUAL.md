@@ -4,7 +4,7 @@
 
 `opus2txt` converts selected data blocks from Bruker OPUS spectroscopy files into simple tab-separated text files suitable for plotting, fitting, spreadsheet, or scientific-analysis software.
 
-This manual is available both as [`MANUAL.md`](MANUAL.md) and as the automatically generated [`MANUAL.pdf`](MANUAL.pdf).
+This manual is available both as [`MANUAL.md`](MANUAL.md) and as [`MANUAL.pdf`](MANUAL.pdf). The PDF copy is regenerated automatically whenever the Markdown manual is updated.
 
 ## Download and start the application
 
