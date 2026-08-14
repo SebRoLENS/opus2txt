@@ -12,10 +12,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = ROOT / "opus2txt.py"
 README = ROOT / "README.md"
+MANUAL = ROOT / "MANUAL.md"
 CITATION = ROOT / "CITATION.cff"
 
 VERSION_RE = re.compile(r'^__version__\s*=\s*"(\d+\.\d+\.\d+)"', re.M)
 SEMVER_RE = re.compile(r"^(\d+)\.(\d+)\.(\d+)$")
+MANUAL_VERSION_RE = re.compile(
+    r"^\*\*Current manual version:\s*(\d+\.\d+\.\d+)\*\*$", re.M
+)
 
 
 def read_version(text: str) -> str:
@@ -97,6 +101,19 @@ Previous releases remain archived separately on Zenodo.
     README.write_text(text)
 
 
+def update_manual(new_version: str) -> None:
+    text = MANUAL.read_text()
+    replacement = f"**Current manual version: {new_version}**"
+    if MANUAL_VERSION_RE.search(text):
+        text = MANUAL_VERSION_RE.sub(replacement, text, count=1)
+    else:
+        title = "# opus2txt User Manual\n"
+        if title not in text:
+            raise SystemExit("Could not find opus2txt manual title")
+        text = text.replace(title, title + "\n" + replacement + "\n", 1)
+    MANUAL.write_text(text)
+
+
 def update_citation(new_version: str) -> None:
     text = CITATION.read_text()
     text = re.sub(r"^doi:\s*.*\n", "", text, flags=re.M)
@@ -134,6 +151,7 @@ def main() -> None:
     )
     SCRIPT.write_text(script_text)
     update_readme(old_version, new_version)
+    update_manual(new_version)
     update_citation(new_version)
     print(new_version)
 
