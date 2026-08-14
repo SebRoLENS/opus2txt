@@ -1,6 +1,7 @@
 # opus2txt
 
-[![Latest release](https://img.shields.io/github/v/release/SebRoLENS/opus2txt)](https://github.com/SebRoLENS/opus2txt/releases/latest)
+[![Version](https://img.shields.io/github/v/release/SebRoLENS/opus2txt)](https://github.com/SebRoLENS/opus2txt/releases/latest)
+[![DOI](https://img.shields.io/badge/DOI-pending-lightgrey)](https://github.com/SebRoLENS/opus2txt/releases/latest)
 
 `opus2txt` is a graphical utility for converting selected data from Bruker OPUS spectroscopy files into simple plain-text datasets.
 
