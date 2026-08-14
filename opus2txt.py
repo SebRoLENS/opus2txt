@@ -56,6 +56,8 @@ __version__ = "1.0.2"
 
 APP_NAME = "OPUS2TXT"
 ORGANIZATION_NAME = "opus2txt"
+MANUAL_URL = "https://github.com/SebRoLENS/opus2txt/blob/main/MANUAL.md"
+GITHUB_URL = "https://github.com/SebRoLENS/opus2txt"
 
 
 def has_dot_hidden_component(path: str | Path) -> bool:
@@ -213,6 +215,17 @@ class MainWindow(QMainWindow):
         outputs.setObjectName("outputs")
         layout.addWidget(outputs)
 
+        links = QLabel(
+            f'<a href="{MANUAL_URL}">User manual</a>'
+            ' &nbsp;·&nbsp; '
+            f'<a href="{GITHUB_URL}">Check GitHub for updates and new releases</a>'
+        )
+        links.setObjectName("links")
+        links.setTextFormat(Qt.TextFormat.RichText)
+        links.setTextInteractionFlags(Qt.TextInteractionFlag.TextBrowserInteraction)
+        links.setOpenExternalLinks(True)
+        layout.addWidget(links)
+
         layout.addSpacerItem(
             QSpacerItem(0, 12, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
         )
@@ -267,7 +280,7 @@ class MainWindow(QMainWindow):
                 font-size: 13px;
                 margin-top: 6px;
             }
-            QLabel#outputs, QLabel#status {
+            QLabel#outputs, QLabel#status, QLabel#links {
                 color: palette(text);
                 font-size: 12px;
             }
@@ -419,7 +432,18 @@ class MainWindow(QMainWindow):
             )
 
 
+def print_terminal_resources() -> None:
+    """Show documentation and update links when launched from a terminal."""
+    if getattr(sys, "stdout", None) is None:
+        return
+    print(f"{APP_NAME} {__version__}")
+    print(f"Manual: {MANUAL_URL}")
+    print(f"Check GitHub for updates and new releases: {GITHUB_URL}")
+    print()
+
+
 def main() -> int:
+    print_terminal_resources()
     app = QApplication(sys.argv)
     app.setApplicationName(APP_NAME)
     app.setOrganizationName(ORGANIZATION_NAME)

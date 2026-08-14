@@ -2,6 +2,10 @@
 
 **Current manual version: 1.0.2**
 
+**Author:** Sebastiano Romi  
+**Affiliation:** European Laboratory for non-Linear Spectroscopy (LENS), Università degli Studi di Firenze (UNIFI)  
+**Contact:** [romi@lens.unifi.it](mailto:romi@lens.unifi.it)
+
 ## Purpose
 
 `opus2txt` converts selected data blocks from Bruker OPUS spectroscopy files into simple tab-separated text files suitable for plotting, fitting, spreadsheet, or scientific-analysis software.
