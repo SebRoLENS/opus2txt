@@ -128,6 +128,7 @@ jobs:
 
   sync-zenodo-doi:
     needs: prepare-release
+    if: ${{ always() && needs.prepare-release.outputs.version != '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
