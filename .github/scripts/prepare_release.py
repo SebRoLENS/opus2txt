@@ -20,6 +20,21 @@ SEMVER_RE = re.compile(r"^(\d+)\.(\d+)\.(\d+)$")
 MANUAL_VERSION_RE = re.compile(
     r"^\*\*Current manual version:\s*(\d+\.\d+\.\d+)\*\*$", re.M
 )
+VERSION_BADGE_RE = re.compile(
+    r"^\[!\[(?:Latest release|Version)\]\([^)]+\)\]\([^)]+\)[ \t]*$", re.M
+)
+DOI_BADGE_RE = re.compile(
+    r"^\[!\[DOI\]\([^)]+\)\]\([^)]+\)[ \t]*$", re.M
+)
+
+VERSION_BADGE = (
+    "[![Version](https://img.shields.io/github/v/release/SebRoLENS/opus2txt)]"
+    "(https://github.com/SebRoLENS/opus2txt/releases/latest)"
+)
+DOI_PENDING_BADGE = (
+    "[![DOI](https://img.shields.io/badge/DOI-pending-lightgrey)]"
+    "(https://github.com/SebRoLENS/opus2txt/releases/latest)"
+)
 
 
 def read_version(text: str) -> str:
@@ -74,18 +89,26 @@ def replace_section(text: str, heading: str, next_heading: str, body: str) -> st
     return pattern.sub(body.rstrip() + "\n\n", text, count=1)
 
 
+def update_badges_for_pending_doi(text: str) -> str:
+    if VERSION_BADGE_RE.search(text):
+        text = VERSION_BADGE_RE.sub(VERSION_BADGE, text, count=1)
+    else:
+        title = "# opus2txt\n"
+        if title not in text:
+            raise SystemExit("Could not find opus2txt README title")
+        text = text.replace(title, title + "\n" + VERSION_BADGE + "\n", 1)
+
+    if DOI_BADGE_RE.search(text):
+        text = DOI_BADGE_RE.sub(DOI_PENDING_BADGE, text, count=1)
+    else:
+        text = text.replace(VERSION_BADGE, VERSION_BADGE + "\n" + DOI_PENDING_BADGE, 1)
+    return text
+
+
 def update_readme(old_version: str, new_version: str) -> None:
     text = README.read_text()
     text = text.replace(old_version, new_version)
-
-    # Do not show the previous release DOI as if it belonged to the new release.
-    text = re.sub(
-        r"^\[!\[DOI\]\(https://zenodo\.org/badge/DOI/[^)]+\.svg\)\]\(https://doi\.org/[^)]+\)[ \t]*$",
-        "[![Latest release](https://img.shields.io/github/v/release/SebRoLENS/opus2txt)]"
-        "(https://github.com/SebRoLENS/opus2txt/releases/latest)",
-        text,
-        flags=re.M,
-    )
+    text = update_badges_for_pending_doi(text)
 
     citation = f"""## How to cite
 
