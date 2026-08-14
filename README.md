@@ -25,7 +25,7 @@ The Linux AppImage is cryptographically attested using open infrastructure. Wind
 
 ## What it does
 
-The program processes one or more Bruker OPUS files (`.0` to `.4`) and creates, when the corresponding data are available:
+The program processes one or more Bruker OPUS files whose extension is numeric (`.0`, `.1`, `.2`, `.12`, `.123`, and so on) and creates, when the corresponding data are available:
 
 - `ABS/<name>_ABS.txt` — absorbance spectrum with `wavenumber` and `absorbance` columns.
 - `SRay/<name>_SRay.txt` — single-ray spectrum with `wavenumber` and `transmittance` columns.
@@ -36,8 +36,8 @@ The `ABS`, `SRay`, and `METADATA` directories are created automatically inside t
 ## Usage
 
 1. Launch the desktop application or `opus2txt.py`.
-2. Select the directory where the converted files should be written.
-3. Select one or more Bruker OPUS files.
+2. Select one or more Bruker OPUS files.
+3. Select the directory where the converted files should be written.
 4. The program extracts the available absorbance, single-ray, and metadata blocks and writes the corresponding text files.
 
 ## Running from source
