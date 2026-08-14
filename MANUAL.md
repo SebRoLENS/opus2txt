@@ -1,10 +1,12 @@
 # opus2txt User Manual
 
+**Current manual version: 1.0.1**
+
 ## Purpose
 
 `opus2txt` converts selected data blocks from Bruker OPUS spectroscopy files into simple tab-separated text files suitable for plotting, fitting, spreadsheet, or scientific-analysis software.
 
-This manual is available both as [`MANUAL.md`](MANUAL.md) and as [`MANUAL.pdf`](MANUAL.pdf). The PDF copy is regenerated automatically whenever the Markdown manual is updated.
+This manual is available both as [`MANUAL.md`](MANUAL.md) and as [`MANUAL.pdf`](MANUAL.pdf). The PDF copy is regenerated automatically whenever the Markdown manual is updated. During an automatic software release, both manual files are versioned together with the application.
 
 ## Download and start the application
 
@@ -42,17 +44,29 @@ Open the DMG and launch `opus2txt`. The macOS builds are currently unsigned, so 
 
 ## Workflow
 
-### 1. Select the output folder
+### 1. Select OPUS files
 
-Press **Select and convert**. The first dialog asks for the output directory. On first launch the dialog starts from the user's home directory. After successful conversions, `opus2txt` remembers the location of the most recently processed OPUS input file for future launches.
+Press **Select and convert**. The application immediately opens the system file-selection dialog.
 
-Paths containing hidden components (names beginning with `.`) are rejected.
+Select one or more Bruker OPUS files. `opus2txt` accepts files whose extension consists entirely of digits, for example:
 
-### 2. Select OPUS files
+```text
+sample.0
+sample.1
+sample.4
+sample.12
+sample.123
+```
 
-After choosing the output directory, a second file dialog opens starting from that directory. Select one or more Bruker OPUS files with extensions `.0`, `.1`, `.2`, `.3`, or `.4`.
+Files with non-numeric extensions are ignored. Hidden files and paths containing hidden components (names beginning with `.`) are rejected.
 
-Hidden files and unsupported extensions are ignored.
+On first launch the file dialog starts from the user's home directory. After successful conversions, `opus2txt` remembers the location of the most recently processed OPUS input file for future launches.
+
+### 2. Select the output folder
+
+After the OPUS files have been selected, the application opens the output-folder dialog.
+
+The dialog starts from the directory containing the first selected input file. Choose the directory where the converted files should be written.
 
 ### 3. Generated files
 
