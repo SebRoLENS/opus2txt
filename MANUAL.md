@@ -4,6 +4,8 @@
 
 `opus2txt` converts selected data blocks from Bruker OPUS spectroscopy files into simple tab-separated text files suitable for plotting, fitting, spreadsheet, or scientific-analysis software.
 
+This manual is available both as [`MANUAL.md`](MANUAL.md) and as the automatically generated [`MANUAL.pdf`](MANUAL.pdf).
+
 ## Download and start the application
 
 Pre-built desktop applications are available from the [latest GitHub Release](https://github.com/SebRoLENS/opus2txt/releases/latest). These packages include the required runtime and dependencies, so Python, PySide6, and `brukeropus` do not need to be installed separately.
