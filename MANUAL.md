@@ -6,11 +6,14 @@
 **Affiliation:** European Laboratory for non-Linear Spectroscopy (LENS), Università degli Studi di Firenze (UNIFI)  
 **Contact:** [romi@lens.unifi.it](mailto:romi@lens.unifi.it)
 
-## Purpose
+## Purpose 1: Convert to .txt
 
 `opus2txt` converts selected data blocks from Bruker OPUS spectroscopy files into simple tab-separated text files suitable for plotting, fitting, spreadsheet, or scientific-analysis software.
 
 This manual is available both as [`MANUAL.md`](MANUAL.md) and as [`MANUAL.pdf`](MANUAL.pdf). The PDF copy is regenerated automatically whenever the Markdown manual is updated. During an automatic software release, both manual files are versioned together with the application.
+
+## Purpose 2: Calculate the absorbance
+`opus2txt` can calculate the absorbance if it is not already included in the opus file and if a background spectra is available. After calculating the absorbance, all traces and metadata will be saved as `.txt` files.
 
 ## Download and start the application
 
@@ -46,7 +49,7 @@ Download the `.dmg` matching the Mac architecture:
 
 Open the DMG and launch `opus2txt`. The macOS builds are currently unsigned, so macOS may display a security warning when the application is opened for the first time.
 
-## Workflow
+## Workflow to convert spectra to txt
 
 ### 1. Select OPUS files
 
@@ -73,6 +76,39 @@ After the OPUS files have been selected, the application opens the output-folder
 The dialog starts from the directory containing the first selected input file. Choose the directory where the converted files should be written.
 
 ### 3. Generated files
+
+For each selected OPUS file, `opus2txt` creates up to three output types.
+
+# Workflow to convert calculate the absorbance
+
+### 1. Select OPUS files
+
+Press **Calculate absorbance**. The application opens a file-selection dialog.
+
+Select one or more Bruker OPUS files containing the spectra of your samples which you need to calculate the absorbance. `opus2txt` accepts files whose extension consists entirely of digits, for example:
+
+```text
+sample.0
+sample.1
+sample.4
+sample.12
+sample.123
+```
+
+Files with non-numeric extensions are ignored. Hidden files and paths containing hidden components (names beginning with `.`) are rejected.
+
+On first launch the file dialog starts from the user's home directory. After successful conversions, `opus2txt` remembers the location of the most recently processed OPUS input file for future launches.
+
+### 2. Select the the bacground file
+Select the single OPUS file which contain your background spectra
+
+### 3. Select the output folder
+
+After the OPUS files have been selected, the application opens the output-folder dialog.
+
+The dialog starts from the directory containing the first selected input file. Choose the directory where the converted files should be written.
+
+### 4. Generated files
 
 For each selected OPUS file, `opus2txt` creates up to three output types.
 
