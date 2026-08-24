@@ -55,7 +55,7 @@ except ModuleNotFoundError as exc:
     ) from exc
 
 
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 
 APP_NAME = "OPUS2TXT"
 ORGANIZATION_NAME = "opus2txt"

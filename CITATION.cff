@@ -5,9 +5,8 @@ type: software
 authors:
   - family-names: Romi
     given-names: S.
-version: "1.0.3"
-date-released: 2026-08-14
+version: "1.1.1"
+date-released: 2026-08-24
 repository-code: "https://github.com/SebRoLENS/opus2txt"
-doi: "10.5281/zenodo.21933187"
-url: "https://doi.org/10.5281/zenodo.21933187"
+url: "https://github.com/SebRoLENS/opus2txt/releases/tag/v1.1.1"
 license: MIT
