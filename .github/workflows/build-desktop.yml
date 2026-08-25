@@ -47,10 +47,22 @@ jobs:
       - name: Install build dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install "pyinstaller==${PYINSTALLER_VERSION}" PySide6 brukeropus
+          python -m pip install "pyinstaller==${PYINSTALLER_VERSION}" PySide6 brukeropus Pillow
+
+      - name: Prepare application icon
+        run: |
+          python - <<'PY'
+          import base64
+          from pathlib import Path
+          source = Path('packaging/opus2txt_icon.b64')
+          target = Path('packaging/opus2txt_icon.png')
+          target.write_bytes(base64.b64decode(source.read_text().strip()))
+          if not target.stat().st_size:
+              raise SystemExit('Application icon could not be decoded')
+          PY
 
       - name: Build standalone application
-        run: python -m PyInstaller --noconfirm --clean --windowed --onedir --name opus2txt opus2txt.py
+        run: python -m PyInstaller --noconfirm --clean --windowed --onedir --name opus2txt --icon packaging/opus2txt_icon.png opus2txt.py
 
       - name: Create AppDir
         run: |
@@ -58,8 +70,8 @@ jobs:
           mkdir -p opus2txt.AppDir/usr/lib/opus2txt
           cp -a dist/opus2txt/. opus2txt.AppDir/usr/lib/opus2txt/
           cp packaging/linux/opus2txt.desktop opus2txt.AppDir/opus2txt.desktop
-          cp packaging/linux/opus2txt.svg opus2txt.AppDir/opus2txt.svg
-          cp packaging/linux/opus2txt.svg opus2txt.AppDir/.DirIcon
+          cp packaging/opus2txt_icon.png opus2txt.AppDir/opus2txt.png
+          cp packaging/opus2txt_icon.png opus2txt.AppDir/.DirIcon
           cat > opus2txt.AppDir/AppRun <<'EOF'
           #!/bin/sh
           APPDIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
@@ -116,12 +128,29 @@ jobs:
         shell: pwsh
         run: |
           python -m pip install --upgrade pip
-          python -m pip install "pyinstaller==$env:PYINSTALLER_VERSION" PySide6 brukeropus
+          python -m pip install "pyinstaller==$env:PYINSTALLER_VERSION" PySide6 brukeropus Pillow
+
+      - name: Prepare Windows icon
+        shell: pwsh
+        run: |
+          @'
+          import base64
+          from io import BytesIO
+          from pathlib import Path
+          from PIL import Image
+
+          raw = base64.b64decode(Path('packaging/opus2txt_icon.b64').read_text().strip())
+          image = Image.open(BytesIO(raw)).convert('RGBA')
+          image.save(
+              'packaging/opus2txt.ico',
+              sizes=[(16, 16), (24, 24), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)],
+          )
+          '@ | python -
 
       - name: Build standalone executable
         shell: pwsh
         run: |
-          python -m PyInstaller --noconfirm --clean --windowed --onefile --name opus2txt opus2txt.py
+          python -m PyInstaller --noconfirm --clean --windowed --onefile --name opus2txt --icon packaging\opus2txt.ico opus2txt.py
           Move-Item dist\opus2txt.exe "opus2txt-$env:VERSION-windows-x86_64.exe"
 
       - uses: actions/upload-artifact@v7
@@ -157,12 +186,26 @@ jobs:
       - name: Install build dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install "pyinstaller==${PYINSTALLER_VERSION}" PySide6 brukeropus
+          python -m pip install "pyinstaller==${PYINSTALLER_VERSION}" PySide6 brukeropus Pillow
+
+      - name: Prepare macOS icon
+        run: |
+          python - <<'PY'
+          import base64
+          from io import BytesIO
+          from pathlib import Path
+          from PIL import Image
+
+          raw = base64.b64decode(Path('packaging/opus2txt_icon.b64').read_text().strip())
+          image = Image.open(BytesIO(raw)).convert('RGBA')
+          image = image.resize((1024, 1024), Image.Resampling.LANCZOS)
+          image.save('packaging/opus2txt.icns')
+          PY
 
       - name: Build application bundle and DMG
         run: |
           set -euxo pipefail
-          python -m PyInstaller --noconfirm --clean --windowed --onedir --name opus2txt opus2txt.py
+          python -m PyInstaller --noconfirm --clean --windowed --onedir --name opus2txt --icon packaging/opus2txt.icns opus2txt.py
           codesign --force --deep --sign - dist/opus2txt.app
           hdiutil create \
             -volname "opus2txt" \
