@@ -13,13 +13,14 @@ permissions:
   contents: write
   actions: write
 
+concurrency:
+  group: automatic-release
+  cancel-in-progress: false
+
 jobs:
   prepare-release:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-22.04
-    concurrency:
-      group: automatic-release-prepare
-      cancel-in-progress: false
     outputs:
       version: ${{ steps.prepare.outputs.version }}
       commit_sha: ${{ steps.commit.outputs.commit_sha }}
@@ -32,14 +33,10 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install release and screenshot dependencies
+      - name: Install release dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            pandoc texlive-xetex texlive-latex-extra texlive-fonts-recommended \
-            xvfb libegl1 libgl1 libopengl0 \
-            libxkbcommon-x11-0 libxcb-cursor0 libxcb-xinerama0 \
-            libxcb-keysyms1 libxcb-render-util0
+          sudo apt-get install -y pandoc texlive-xetex texlive-latex-extra texlive-fonts-recommended xvfb libegl1 libgl1 libopengl0 libxkbcommon-x11-0 libxcb-cursor0 libxcb-xinerama0 libxcb-keysyms1 libxcb-render-util0
           python -m pip install --upgrade pip
           python -m pip install PySide6 brukeropus
 
@@ -50,28 +47,24 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Preparing opus2txt v$VERSION"
 
-      - name: Capture release GUI screenshot
+      - name: Capture GUI screenshot
         run: |
           mkdir -p docs
           xvfb-run -a python - <<'PY'
           from pathlib import Path
           from PySide6.QtWidgets import QApplication
           from opus2txt import MainWindow
-
           app = QApplication([])
           window = MainWindow()
           window.show()
-          app.processEvents()
-          window.raise_()
-          window.activateWindow()
           app.processEvents()
           pixmap = window.grab()
           target = Path('docs/opus2txt_gui.png')
           if pixmap.isNull() or not pixmap.save(str(target), 'PNG'):
               raise SystemExit('Could not save GUI screenshot')
-          print(f'Saved {target} ({pixmap.width()}x{pixmap.height()})')
           window.close()
           app.quit()
+          print(f'Saved {target}')
           PY
           test -s docs/opus2txt_gui.png
           rm -f docs/screenshot_error.txt
@@ -90,9 +83,8 @@ jobs:
           VERSION="${{ steps.prepare.outputs.version }}"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add opus2txt.py README.md CITATION.cff MANUAL.md MANUAL.pdf \
-            docs/opus2txt_gui.png
-          git add -u docs/screenshot_error.txt || true
+          git add opus2txt.py README.md CITATION.cff MANUAL.md MANUAL.pdf docs/opus2txt_gui.png
+          if [ -e docs/screenshot_error.txt ]; then git rm -f docs/screenshot_error.txt; fi
           git commit -m "Prepare v${VERSION} release"
           git push origin HEAD:main
           SHA="$(git rev-parse HEAD)"
@@ -124,12 +116,7 @@ jobs:
 
           **Zenodo DOI:** pending automatic archival.
           EOF
-
-          gh release create "v${VERSION}" \
-            --repo "$GITHUB_REPOSITORY" \
-            --title "opus2txt v${VERSION}" \
-            --notes-file /tmp/release-notes.md \
-            --verify-tag
+          gh release create "v${VERSION}" --repo "$GITHUB_REPOSITORY" --title "opus2txt v${VERSION}" --notes-file /tmp/release-notes.md --verify-tag
 
       - name: Dispatch desktop builds
         env:
@@ -137,46 +124,25 @@ jobs:
           VERSION: ${{ steps.prepare.outputs.version }}
           RELEASE_SHA: ${{ steps.commit.outputs.commit_sha }}
         run: |
-          gh workflow run build-desktop.yml \
-            --repo "$GITHUB_REPOSITORY" \
-            --ref main \
-            -f "source_ref=v${VERSION}"
-
-          echo "Waiting for the desktop-build workflow to start..."
+          gh workflow run build-desktop.yml --repo "$GITHUB_REPOSITORY" --ref main -f "source_ref=v${VERSION}"
           RUN_ID=""
           for attempt in $(seq 1 30); do
-            RUN_ID="$(
-              gh api \
-                "repos/${GITHUB_REPOSITORY}/actions/workflows/build-desktop.yml/runs?event=workflow_dispatch&head_sha=${RELEASE_SHA}&per_page=10" \
-                --jq '.workflow_runs[0].id // empty'
-            )"
-            if [ -n "$RUN_ID" ]; then
-              break
-            fi
+            RUN_ID="$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/build-desktop.yml/runs?event=workflow_dispatch&head_sha=${RELEASE_SHA}&per_page=10" --jq '.workflow_runs[0].id // empty')"
+            if [ -n "$RUN_ID" ]; then break; fi
             sleep 4
           done
-
-          if [ -z "$RUN_ID" ]; then
-            echo "Could not locate the dispatched desktop-build run."
-            exit 1
-          fi
-
-          echo "Desktop-build run: $RUN_ID"
+          if [ -z "$RUN_ID" ]; then echo "Could not locate desktop build run"; exit 1; fi
           gh run watch "$RUN_ID" --repo "$GITHUB_REPOSITORY" --exit-status
 
   sync-zenodo-doi:
     needs: prepare-release
     if: ${{ always() && needs.prepare-release.outputs.version != '' }}
     runs-on: ubuntu-latest
-    concurrency:
-      group: zenodo-sync-${{ needs.prepare-release.outputs.version }}
-      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v6
         with:
           ref: main
           fetch-depth: 1
-
       - name: Wait for Zenodo GitHub integration
         id: zenodo
         env:
@@ -188,28 +154,12 @@ jobs:
             DOI="$(python3 .github/scripts/sync_zenodo_doi.py --version "$VERSION")"
             STATUS=$?
             set -e
-
-            if [ "$STATUS" -eq 0 ] && [ -n "$DOI" ]; then
-              echo "Found Zenodo DOI: $DOI"
-              break
-            fi
-
-            if [ "$STATUS" -eq 3 ]; then
-              echo "Zenodo API error on attempt ${attempt}/60; retrying."
-            else
-              echo "Zenodo record for v${VERSION} not visible yet (attempt ${attempt}/60)."
-            fi
+            if [ "$STATUS" -eq 0 ] && [ -n "$DOI" ]; then break; fi
             sleep 60
           done
-
-          if [ -z "$DOI" ]; then
-            echo "Zenodo DOI was not found within one hour."
-            exit 1
-          fi
-
+          if [ -z "$DOI" ]; then echo "Zenodo DOI was not found within one hour."; exit 1; fi
           python3 .github/scripts/sync_zenodo_doi.py --version "$VERSION" --apply >/dev/null
           echo "doi=$DOI" >> "$GITHUB_OUTPUT"
-
       - name: Commit DOI and citation metadata
         env:
           VERSION: ${{ needs.prepare-release.outputs.version }}
@@ -218,13 +168,9 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add README.md CITATION.cff
-          if git diff --cached --quiet; then
-            echo "README and CITATION.cff are already up to date."
-            exit 0
-          fi
+          if git diff --cached --quiet; then exit 0; fi
           git commit -m "Link v${VERSION} to Zenodo DOI ${DOI}"
           git push origin HEAD:main
-
       - name: Add DOI to GitHub release notes
         env:
           GH_TOKEN: ${{ github.token }}
@@ -241,7 +187,4 @@ jobs:
 
           **Zenodo DOI:** https://doi.org/${DOI}
           EOF
-
-          gh release edit "v${VERSION}" \
-            --repo "$GITHUB_REPOSITORY" \
-            --notes-file /tmp/release-notes.md
+          gh release edit "v${VERSION}" --repo "$GITHUB_REPOSITORY" --notes-file /tmp/release-notes.md
