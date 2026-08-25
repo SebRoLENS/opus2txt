@@ -1,7 +1,7 @@
 # opus2txt
 
 [![Version](https://img.shields.io/github/v/release/SebRoLENS/opus2txt)](https://github.com/SebRoLENS/opus2txt/releases/latest)
-[![DOI](https://img.shields.io/badge/DOI-pending-lightgrey)](https://github.com/SebRoLENS/opus2txt/releases/latest)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22095286.svg)](https://doi.org/10.5281/zenodo.22095286)
 
 `opus2txt` is a graphical utility for extracting spectroscopy data from Bruker OPUS files into simple plain-text datasets and, when sample/background single-ray spectra are available, calculating absorbance spectra.
 
@@ -121,9 +121,9 @@ Current public version: **1.1.5**
 
 If opus2txt contributes to published research, please acknowledge or cite the software. GitHub also provides a **Cite this repository** entry from [`CITATION.cff`](CITATION.cff).
 
-Version **1.1.5** is archived automatically on Zenodo after the GitHub release is published. The DOI for this release is being assigned and will be inserted here automatically.
+> Romi, S. (2026). *opus2txt* (Version 1.1.5) [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.22095286
 
-> Romi, S. (2026). *opus2txt* (Version 1.1.5) [Computer software]. GitHub. https://github.com/SebRoLENS/opus2txt/releases/tag/v1.1.5
+DOI: [**10.5281/zenodo.22095286**](https://doi.org/10.5281/zenodo.22095286)
 
 Previous releases remain archived separately on Zenodo.
 
