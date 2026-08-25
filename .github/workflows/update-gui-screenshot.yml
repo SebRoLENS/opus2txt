@@ -30,46 +30,61 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install PySide6 brukeropus
 
-      - name: Render current GUI
+      - name: Render current GUI or record diagnostic
         env:
           QT_QPA_PLATFORM: offscreen
         run: |
           mkdir -p docs
           python - <<'PY'
           from pathlib import Path
-          from PySide6.QtCore import Qt
-          from PySide6.QtGui import QPainter, QPixmap
-          from PySide6.QtWidgets import QApplication
-          from opus2txt import MainWindow
+          import traceback
 
-          app = QApplication([])
-          window = MainWindow()
-          window.ensurePolished()
-          window.show()
-          app.processEvents()
-
-          pixmap = QPixmap(window.size())
-          pixmap.fill(Qt.GlobalColor.transparent)
-          painter = QPainter(pixmap)
-          window.render(painter)
-          painter.end()
-
+          error_file = Path('docs/screenshot_error.txt')
           target = Path('docs/opus2txt_gui.png')
-          if pixmap.isNull() or not pixmap.save(str(target), 'PNG'):
-              raise SystemExit('Could not save GUI screenshot')
-          print(f'Saved {target} ({pixmap.width()}x{pixmap.height()})')
-          window.close()
-          app.quit()
+
+          try:
+              from PySide6.QtCore import Qt
+              from PySide6.QtGui import QPainter, QPixmap
+              from PySide6.QtWidgets import QApplication
+              from opus2txt import MainWindow
+
+              app = QApplication([])
+              window = MainWindow()
+              window.ensurePolished()
+              window.show()
+              app.processEvents()
+
+              pixmap = QPixmap(window.size())
+              pixmap.fill(Qt.GlobalColor.transparent)
+              painter = QPainter(pixmap)
+              window.render(painter)
+              painter.end()
+
+              if pixmap.isNull() or not pixmap.save(str(target), 'PNG'):
+                  raise RuntimeError('Could not save GUI screenshot')
+
+              if error_file.exists():
+                  error_file.unlink()
+              print(f'Saved {target} ({pixmap.width()}x{pixmap.height()})')
+              window.close()
+              app.quit()
+          except BaseException:
+              error_file.write_text(traceback.format_exc(), encoding='utf-8')
+              print(error_file.read_text(encoding='utf-8'))
           PY
 
-      - name: Commit screenshot if changed
+      - name: Commit screenshot or diagnostic
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add docs/opus2txt_gui.png
+          git add -A docs
           if git diff --cached --quiet; then
-            echo 'GUI screenshot is already up to date.'
+            echo 'No screenshot or diagnostic changes.'
             exit 0
           fi
-          git commit -m 'Update GUI screenshot'
+          if [ -f docs/opus2txt_gui.png ]; then
+            git commit -m 'Update GUI screenshot'
+          else
+            git commit -m 'Record GUI screenshot diagnostic'
+          fi
           git push origin HEAD:main
