@@ -1,6 +1,6 @@
 # opus2txt User Manual
 
-**Current manual version: 1.1.4**
+**Current manual version: 1.1.5**
 
 **Author:** Sebastiano Romi  
 **Affiliation:** European Laboratory for non-Linear Spectroscopy (LENS), Università degli Studi di Firenze (UNIFI)  
