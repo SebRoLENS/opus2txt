@@ -6,14 +6,29 @@
 **Affiliation:** European Laboratory for non-Linear Spectroscopy (LENS), Università degli Studi di Firenze (UNIFI)  
 **Contact:** [romi@lens.unifi.it](mailto:romi@lens.unifi.it)
 
-## Purpose 1: Convert to .txt
+## Purpose
 
-`opus2txt` converts selected data blocks from Bruker OPUS spectroscopy files into simple tab-separated text files suitable for plotting, fitting, spreadsheet, or scientific-analysis software.
+`opus2txt` is a graphical utility for working with Bruker OPUS spectroscopy files. It provides two complementary workflows:
 
-This manual is available both as [`MANUAL.md`](MANUAL.md) and as [`MANUAL.pdf`](MANUAL.pdf). The PDF copy is regenerated automatically whenever the Markdown manual is updated. During an automatic software release, both manual files are versioned together with the application.
+1. **Convert existing OPUS data to plain-text files.** Available absorbance, single-ray and metadata blocks are exported to simple tab-separated text datasets suitable for plotting, fitting, spreadsheets or scientific-analysis software.
+2. **Calculate absorbance from sample and background spectra.** If compatible sample and background single-ray spectra are available, `opus2txt` calculates absorbance and exports the result together with the sample single-ray trace and metadata.
 
-## Purpose 2: Calculate the absorbance
-`opus2txt` can calculate the absorbance if it is not already included in the opus file and if a background spectra is available. After calculating the absorbance, all traces and metadata will be saved as `.txt` files.
+This manual is available both as [`MANUAL.md`](MANUAL.md) and as [`MANUAL.pdf`](MANUAL.pdf). The PDF copy is regenerated automatically whenever the Markdown manual is updated.
+
+## Graphical interface
+
+![opus2txt graphical interface](docs/opus2txt_gui.png)
+
+The current interface is implemented with PySide6/Qt and follows the desktop theme supplied by the operating system. The main window provides:
+
+- **Select and convert** for extracting existing OPUS data blocks;
+- **Calculate absorbance** for sample/background processing;
+- a progress bar and status display;
+- direct links to the user manual and GitHub repository/update page;
+- the author contact address;
+- an **Exit** button.
+
+The application remembers the directory containing the most recently processed OPUS input file. On first use, or when the saved directory is no longer valid, file selection starts from the user's home directory.
 
 ## Download and start the application
 
@@ -44,18 +59,14 @@ The Windows build is currently unsigned, so Windows may display a security warni
 
 Download the `.dmg` matching the Mac architecture:
 
-- `arm64` for Apple Silicon Macs.
+- `arm64` for Apple Silicon Macs;
 - `x86_64` for Intel Macs.
 
 Open the DMG and launch `opus2txt`. The macOS builds are currently unsigned, so macOS may display a security warning when the application is opened for the first time.
 
-## Workflow to convert spectra to txt
+## Accepted OPUS files
 
-### 1. Select OPUS files
-
-Press **Select and convert**. The application immediately opens the system file-selection dialog.
-
-Select one or more Bruker OPUS files. `opus2txt` accepts files whose extension consists entirely of digits, for example:
+`opus2txt` accepts files whose **final extension consists entirely of digits**, for example:
 
 ```text
 sample.0
@@ -65,54 +76,31 @@ sample.12
 sample.123
 ```
 
-Files with non-numeric extensions are ignored. Hidden files and paths containing hidden components (names beginning with `.`) are rejected.
+Files with non-numeric extensions are ignored. Hidden files and paths containing hidden components (directory or file names beginning with `.`) are rejected.
 
-On first launch the file dialog starts from the user's home directory. After successful conversions, `opus2txt` remembers the location of the most recently processed OPUS input file for future launches.
+This filtering is intentional because Bruker OPUS datasets commonly use numeric filename extensions.
 
-### 2. Select the output folder
+# Workflow 1 — Select and convert
 
-After the OPUS files have been selected, the application opens the output-folder dialog.
+Use this workflow when the OPUS file already contains the data blocks you want to export.
 
-The dialog starts from the directory containing the first selected input file. Choose the directory where the converted files should be written.
+## 1. Select OPUS files
 
-### 3. Generated files
+Press **Select and convert**. The system file-selection dialog opens immediately.
 
-For each selected OPUS file, `opus2txt` creates up to three output types.
+Select one or more accepted Bruker OPUS files. If some selected files are hidden or do not have a numeric extension, the application reports that they were ignored and continues with the valid files.
 
-# Workflow to convert calculate the absorbance
+## 2. Select the output folder
 
-### 1. Select OPUS files
+After the OPUS files have been selected, the application opens the output-folder dialog. It initially points to the directory containing the first selected input file.
 
-Press **Calculate absorbance**. The application opens a file-selection dialog.
+Choose the directory where the converted files should be written.
 
-Select one or more Bruker OPUS files containing the spectra of your samples which you need to calculate the absorbance. `opus2txt` accepts files whose extension consists entirely of digits, for example:
-
-```text
-sample.0
-sample.1
-sample.4
-sample.12
-sample.123
-```
-
-Files with non-numeric extensions are ignored. Hidden files and paths containing hidden components (names beginning with `.`) are rejected.
-
-On first launch the file dialog starts from the user's home directory. After successful conversions, `opus2txt` remembers the location of the most recently processed OPUS input file for future launches.
-
-### 2. Select the the bacground file
-Select the single OPUS file which contain your background spectra
-
-### 3. Select the output folder
-
-After the OPUS files have been selected, the application opens the output-folder dialog.
-
-The dialog starts from the directory containing the first selected input file. Choose the directory where the converted files should be written.
-
-### 4. Generated files
+## 3. Generated files
 
 For each selected OPUS file, `opus2txt` creates up to three output types.
 
-#### ABS
+### ABS
 
 If the OPUS file contains an absorbance block (`a`), data are written to:
 
@@ -126,7 +114,7 @@ with columns:
 wavenumber    absorbance
 ```
 
-#### SRay
+### SRay
 
 If the OPUS file contains a single-ray block (`sm`), data are written to:
 
@@ -140,7 +128,7 @@ with columns:
 wavenumber    transmittance
 ```
 
-#### METADATA
+### METADATA
 
 Parameters printed by `brukeropus` are written to:
 
@@ -148,13 +136,95 @@ Parameters printed by `brukeropus` are written to:
 METADATA/<original_name>_META.txt
 ```
 
+The `ABS`, `SRay`, and `METADATA` directories are created automatically inside the selected output directory and existing directories are reused.
+
+## 4. Progress and errors
+
+The main-window progress bar advances as the selected files are processed. If one OPUS file cannot be read or converted, an error dialog identifies the file; the remaining selected files continue to be processed.
+
+After successful processing, the directory containing the input file is stored as the starting location for the next run.
+
+# Workflow 2 — Calculate absorbance
+
+Use this workflow when the sample absorbance is not already available and you have a compatible background measurement.
+
+## 1. Open the absorbance dialog
+
+Press **Calculate absorbance**. A dedicated dialog opens with separate controls for the sample spectra and background file.
+
+## 2. Select sample OPUS spectra
+
+Press **Select OPUS spectra** and select one or more sample files. The same numeric-extension and hidden-file checks used by the conversion workflow are applied.
+
+The dialog reports how many sample files have been selected.
+
+## 3. Select the background OPUS file
+
+Press **Select background file** and choose one background OPUS file.
+
+The background must also be an accepted numeric-extension OPUS file and must contain the required single-ray data if absorbance is to be calculated from sample/background intensities.
+
+## 4. Calculate and select the output folder
+
+Press **Calculate**. The application then asks for the output folder and processes every selected sample against the same background spectrum.
+
+The progress bar and status text are updated while the samples are processed.
+
+## 5. Absorbance equation
+
+When both the sample and background contain single-ray (`sm`) data, absorbance is calculated point by point as
+
+$$
+A = -\log_{10}\left(\frac{S_{sample}}{S_{background}}\right)
+  = \log_{10}\left(\frac{S_{background}}{S_{sample}}\right).
+$$
+
+The calculated spectrum is written to:
+
+```text
+ABS/<sample_name>_ABS.txt
+```
+
+with columns:
+
+```text
+wavenumber    absorbance
+```
+
+The sample single-ray spectrum is also written to `SRay/` when available, and the sample metadata are written to `METADATA/`.
+
+### Important compatibility note
+
+The sample and background should originate from compatible measurements and should use the **same spectral grid**. The current implementation pairs the sample and background single-ray arrays point by point; it does not interpolate one spectrum onto the grid of the other.
+
+Only points for which both sample and background intensities are positive are evaluated with the logarithmic expression. Non-positive intensity pairs are written as zero absorbance.
+
+### Fallback to existing absorbance
+
+If the single-ray data required for a sample/background calculation are unavailable but the sample file already contains an absorbance block (`a`), `opus2txt` exports that existing absorbance block instead.
+
+If neither a valid sample/background single-ray calculation nor a pre-calculated sample absorbance is available, an error is reported for that sample and processing continues with the remaining selected files.
+
 ## Existing output directories
 
-The `ABS`, `SRay`, and `METADATA` directories are created automatically when needed. Existing directories are reused.
+The `ABS`, `SRay`, and `METADATA` directories are created automatically when needed. Existing directories are reused; therefore output from multiple compatible processing runs can be directed to the same parent directory if desired.
 
-## Errors
+## Remembered input directory
 
-If an OPUS file cannot be read or converted, the application displays an error message identifying the file. Other selected files continue to be processed.
+The current Qt interface stores the most recently used OPUS input directory through `QSettings`. If an older version of `opus2txt` stored the same preference in its legacy JSON configuration file, the application attempts to migrate that setting automatically.
+
+Saved paths that no longer exist or contain hidden path components are ignored and the application falls back to the user's home directory.
+
+## Manual and update links
+
+The main window contains clickable links to:
+
+- this user manual;
+- the GitHub repository, where current releases and updates are published.
+
+If the operating system cannot open a link automatically, the application displays the explicit URL so that it can be copied into a browser.
+
+The contact address `romi@lens.unifi.it` is also shown in the graphical interface and when the program is launched from a terminal.
 
 ## Running from source
 
@@ -180,7 +250,7 @@ python3 -m venv ~/.venv/opus2txt
 
 ### pipx
 
-With a recent version of `pipx`:
+The script contains PEP 723 dependency metadata. With a recent version of `pipx`:
 
 ```bash
 pipx run ./opus2txt.py
