@@ -55,7 +55,7 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           from PySide6.QtCore import Qt
-          from PySide6.QtGui import QPainter, QPixmap
+          from PySide6.QtGui import QPixmap
           from PySide6.QtWidgets import QApplication
           from opus2txt import MainWindow
 
@@ -65,12 +65,9 @@ jobs:
           window.show()
           app.processEvents()
 
-          size = window.size()
-          pixmap = QPixmap(size)
+          pixmap = QPixmap(window.size())
           pixmap.fill(Qt.GlobalColor.transparent)
-          painter = QPainter(pixmap)
-          window.render(painter)
-          painter.end()
+          window.render(pixmap)
 
           target = Path('docs/opus2txt_gui.png')
           if pixmap.isNull() or not pixmap.save(str(target), 'PNG'):
