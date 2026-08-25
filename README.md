@@ -3,11 +3,22 @@
 [![Version](https://img.shields.io/github/v/release/SebRoLENS/opus2txt)](https://github.com/SebRoLENS/opus2txt/releases/latest)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22078116.svg)](https://doi.org/10.5281/zenodo.22078116)
 
-`opus2txt` is a graphical utility for converting and calculating the absorbance of selected data from Bruker OPUS spectroscopy files into simple plain-text datasets.
+`opus2txt` is a graphical utility for extracting spectroscopy data from Bruker OPUS files into simple plain-text datasets and, when sample/background single-ray spectra are available, calculating absorbance spectra.
+
+## Graphical interface
+
+![opus2txt graphical interface](docs/opus2txt_gui.png)
+
+The current PySide6/Qt interface provides two main workflows:
+
+- **Select and convert** — extracts available absorbance, single-ray and metadata blocks from one or more OPUS files.
+- **Calculate absorbance** — selects one or more sample OPUS files plus one background OPUS file and calculates absorbance from the single-ray spectra.
+
+The GUI also provides a progress indicator, remembers the most recently used OPUS input directory, ignores hidden files/paths and files without numeric extensions, and includes direct links to the user manual and GitHub update page together with the author contact address.
 
 ## Download and run
 
-For most users, the easiest way to use opus2txt is through the pre-built desktop application.
+For most users, the easiest way to use `opus2txt` is through the pre-built desktop application.
 
 **No Python installation, terminal, PySide6, or separate `brukeropus` installation is required when using the packaged applications.**
 
@@ -26,21 +37,50 @@ The Linux AppImage is cryptographically attested using open infrastructure. Wind
 
 ## What it does
 
-The program processes one or more Bruker OPUS files whose extension is numeric (`.0`, `.1`, `.2`, `.n`). It extrapolates various traces from the opus files converting them into `txt` files. It can be used to calculate the absorbbance if a background spectra is available. The output will be organized in the following folders:
+`opus2txt` accepts Bruker OPUS files whose final extension is numeric, for example `.0`, `.1`, `.12` or `.123`.
 
-- `ABS/<name>_ABS.txt` — absorbance spectrum with `wavenumber` and `absorbance` columns.
-- `SRay/<name>_SRay.txt` — single-ray spectrum with `wavenumber` and `transmittance` columns.
-- `METADATA/<name>_META.txt` — OPUS parameters and metadata reported by `brukeropus`.
+### Extract existing OPUS data
+
+For each selected file, the program can export:
+
+- `ABS/<name>_ABS.txt` — absorbance spectrum, when an OPUS absorbance block (`a`) is present;
+- `SRay/<name>_SRay.txt` — single-ray spectrum, when an OPUS single-ray block (`sm`) is present;
+- `METADATA/<name>_META.txt` — parameters and metadata reported by `brukeropus`.
 
 The `ABS`, `SRay`, and `METADATA` directories are created automatically inside the selected output directory.
 
+### Calculate absorbance from sample and background
+
+The **Calculate absorbance** workflow uses the sample and background single-ray spectra according to
+
+```text
+A = -log10(S_sample / S_background)
+  =  log10(S_background / S_sample)
+```
+
+For every selected sample, the calculated absorbance is written to `ABS/<name>_ABS.txt`. The sample single-ray trace and metadata are also exported when available.
+
+The sample and background should come from compatible measurements and should use the same spectral grid. If the required single-ray data are unavailable but the sample already contains an absorbance block, `opus2txt` falls back to exporting that existing absorbance spectrum. Otherwise it reports an error for that file and continues processing the remaining selected samples.
+
 ## Usage
 
+### Convert existing OPUS traces
+
 1. Launch the desktop application or `opus2txt.py`.
-2. Select `select and convert` or `calculate absorbance` according to your needing 
-2. Select one or more Bruker OPUS files.
-3. Select the directory where the converted/calculated files should be written.
-4. The program extracts the available absorbance, single-ray, and metadata blocks and writes the corresponding text files.
+2. Press **Select and convert**.
+3. Select one or more Bruker OPUS files.
+4. Choose the output directory.
+5. The program writes the available `ABS`, `SRay`, and `METADATA` text files and shows progress in the main window.
+
+### Calculate absorbance
+
+1. Press **Calculate absorbance**.
+2. Select one or more sample OPUS spectra.
+3. Select a single background OPUS file.
+4. Press **Calculate** and choose the output directory.
+5. The program calculates each absorbance spectrum, exports the associated data and reports progress in the dialog.
+
+Files with non-numeric extensions, hidden files, and paths containing hidden components are ignored/rejected. The application remembers the most recently processed OPUS input directory between runs.
 
 ## Running from source
 
@@ -75,11 +115,11 @@ Detailed usage documentation is available in:
 
 ## Version
 
-Current public version: **1.0.3**
+Current public version: **1.1.1**
 
 ## How to cite
 
-If opus2txt contributes to published research, please acknowledge or cite the software. GitHub also provides a **Cite this repository** entry from [`CITATION.cff`](CITATION.cff).
+If `opus2txt` contributes to published research, please acknowledge or cite the software. GitHub also provides a **Cite this repository** entry from [`CITATION.cff`](CITATION.cff).
 
 > Romi, S. (2026). *opus2txt* (Version 1.1.1) [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.22078116
 
