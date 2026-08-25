@@ -15,7 +15,7 @@ permissions:
 jobs:
   screenshot:
     if: github.actor != 'github-actions[bot]'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v6
         with:
@@ -29,44 +29,35 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            libegl1 libgl1 libopengl0 \
+            xvfb libegl1 libgl1 libopengl0 \
             libxkbcommon-x11-0 libxcb-cursor0 libxcb-xinerama0 \
             libxcb-keysyms1 libxcb-render-util0
           python -m pip install --upgrade pip
           python -m pip install PySide6 brukeropus
-          ldconfig -p | grep -E 'libEGL|libGL\.so|libOpenGL' || true
 
-      - name: Render current GUI or record diagnostic
-        env:
-          QT_QPA_PLATFORM: offscreen
+      - name: Capture current GUI or record diagnostic
         run: |
           mkdir -p docs
-          python - <<'PY'
+          xvfb-run -a python - <<'PY'
           from pathlib import Path
-          import subprocess
           import traceback
 
           error_file = Path('docs/screenshot_error.txt')
           target = Path('docs/opus2txt_gui.png')
 
           try:
-              from PySide6.QtCore import Qt
-              from PySide6.QtGui import QPainter, QPixmap
               from PySide6.QtWidgets import QApplication
               from opus2txt import MainWindow
 
               app = QApplication([])
               window = MainWindow()
-              window.ensurePolished()
               window.show()
               app.processEvents()
+              window.raise_()
+              window.activateWindow()
+              app.processEvents()
 
-              pixmap = QPixmap(window.size())
-              pixmap.fill(Qt.GlobalColor.transparent)
-              painter = QPainter(pixmap)
-              window.render(painter)
-              painter.end()
-
+              pixmap = window.grab()
               if pixmap.isNull() or not pixmap.save(str(target), 'PNG'):
                   raise RuntimeError('Could not save GUI screenshot')
 
@@ -76,15 +67,7 @@ jobs:
               window.close()
               app.quit()
           except BaseException:
-              libs = subprocess.run(
-                  ['bash', '-lc', "ldconfig -p | grep -E 'libEGL|libGL|libOpenGL|libxcb|libxkbcommon' || true"],
-                  capture_output=True,
-                  text=True,
-              ).stdout
-              error_file.write_text(
-                  traceback.format_exc() + '\nAvailable relevant libraries:\n' + libs,
-                  encoding='utf-8',
-              )
+              error_file.write_text(traceback.format_exc(), encoding='utf-8')
               print(error_file.read_text(encoding='utf-8'))
           PY
 
