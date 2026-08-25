@@ -27,15 +27,15 @@ jobs:
 
       - name: Install screenshot dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y xvfb libxkbcommon-x11-0 libxcb-cursor0
           python -m pip install --upgrade pip
           python -m pip install PySide6 brukeropus
 
       - name: Capture current GUI
+        env:
+          QT_QPA_PLATFORM: offscreen
         run: |
           mkdir -p docs
-          xvfb-run -a python - <<'PY'
+          python - <<'PY'
           from pathlib import Path
           from PySide6.QtWidgets import QApplication
           from opus2txt import MainWindow
@@ -44,12 +44,13 @@ jobs:
           window = MainWindow()
           window.show()
           app.processEvents()
-          screen = window.screen()
-          pixmap = screen.grabWindow(window.winId())
-          if not pixmap.save(str(Path('docs/opus2txt_gui.png'))):
+          pixmap = window.grab()
+          target = Path('docs/opus2txt_gui.png')
+          if pixmap.isNull() or not pixmap.save(str(target)):
               raise SystemExit('Could not save GUI screenshot')
           window.close()
           app.quit()
+          print(f'Saved {target}')
           PY
 
       - name: Commit screenshot if changed
