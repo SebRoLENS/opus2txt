@@ -13,14 +13,13 @@ permissions:
   contents: write
   actions: write
 
-concurrency:
-  group: automatic-release
-  cancel-in-progress: false
-
 jobs:
   prepare-release:
     if: github.actor != 'github-actions[bot]'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+    concurrency:
+      group: automatic-release-prepare
+      cancel-in-progress: false
     outputs:
       version: ${{ steps.prepare.outputs.version }}
       commit_sha: ${{ steps.commit.outputs.commit_sha }}
@@ -29,11 +28,20 @@ jobs:
         with:
           ref: main
           fetch-depth: 2
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
 
-      - name: Install manual build dependencies
+      - name: Install release and screenshot dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y pandoc texlive-xetex texlive-latex-extra texlive-fonts-recommended
+          sudo apt-get install -y \
+            pandoc texlive-xetex texlive-latex-extra texlive-fonts-recommended \
+            xvfb libegl1 libgl1 libopengl0 \
+            libxkbcommon-x11-0 libxcb-cursor0 libxcb-xinerama0 \
+            libxcb-keysyms1 libxcb-render-util0
+          python -m pip install --upgrade pip
+          python -m pip install PySide6 brukeropus
 
       - name: Prepare next version
         id: prepare
@@ -42,10 +50,37 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Preparing opus2txt v$VERSION"
 
+      - name: Capture release GUI screenshot
+        run: |
+          mkdir -p docs
+          xvfb-run -a python - <<'PY'
+          from pathlib import Path
+          from PySide6.QtWidgets import QApplication
+          from opus2txt import MainWindow
+
+          app = QApplication([])
+          window = MainWindow()
+          window.show()
+          app.processEvents()
+          window.raise_()
+          window.activateWindow()
+          app.processEvents()
+          pixmap = window.grab()
+          target = Path('docs/opus2txt_gui.png')
+          if pixmap.isNull() or not pixmap.save(str(target), 'PNG'):
+              raise SystemExit('Could not save GUI screenshot')
+          print(f'Saved {target} ({pixmap.width()}x{pixmap.height()})')
+          window.close()
+          app.quit()
+          PY
+          test -s docs/opus2txt_gui.png
+          rm -f docs/screenshot_error.txt
+
       - name: Build versioned PDF manual
         run: |
           pandoc MANUAL.md \
             --from markdown \
+            --resource-path=. \
             --pdf-engine=xelatex \
             --output MANUAL.pdf
 
@@ -55,7 +90,9 @@ jobs:
           VERSION="${{ steps.prepare.outputs.version }}"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add opus2txt.py README.md CITATION.cff MANUAL.md MANUAL.pdf
+          git add opus2txt.py README.md CITATION.cff MANUAL.md MANUAL.pdf \
+            docs/opus2txt_gui.png
+          git add -u docs/screenshot_error.txt || true
           git commit -m "Prepare v${VERSION} release"
           git push origin HEAD:main
           SHA="$(git rev-parse HEAD)"
@@ -131,6 +168,9 @@ jobs:
     needs: prepare-release
     if: ${{ always() && needs.prepare-release.outputs.version != '' }}
     runs-on: ubuntu-latest
+    concurrency:
+      group: zenodo-sync-${{ needs.prepare-release.outputs.version }}
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v6
         with:
