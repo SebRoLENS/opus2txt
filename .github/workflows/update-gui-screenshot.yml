@@ -28,9 +28,13 @@ jobs:
       - name: Install screenshot dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libegl1
+          sudo apt-get install -y \
+            libegl1 libgl1 libopengl0 \
+            libxkbcommon-x11-0 libxcb-cursor0 libxcb-xinerama0 \
+            libxcb-keysyms1 libxcb-render-util0
           python -m pip install --upgrade pip
           python -m pip install PySide6 brukeropus
+          ldconfig -p | grep -E 'libEGL|libGL\.so|libOpenGL' || true
 
       - name: Render current GUI or record diagnostic
         env:
@@ -39,6 +43,7 @@ jobs:
           mkdir -p docs
           python - <<'PY'
           from pathlib import Path
+          import subprocess
           import traceback
 
           error_file = Path('docs/screenshot_error.txt')
@@ -71,7 +76,15 @@ jobs:
               window.close()
               app.quit()
           except BaseException:
-              error_file.write_text(traceback.format_exc(), encoding='utf-8')
+              libs = subprocess.run(
+                  ['bash', '-lc', "ldconfig -p | grep -E 'libEGL|libGL|libOpenGL|libxcb|libxkbcommon' || true"],
+                  capture_output=True,
+                  text=True,
+              ).stdout
+              error_file.write_text(
+                  traceback.format_exc() + '\nAvailable relevant libraries:\n' + libs,
+                  encoding='utf-8',
+              )
               print(error_file.read_text(encoding='utf-8'))
           PY
 
