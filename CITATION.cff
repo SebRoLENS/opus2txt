@@ -8,5 +8,6 @@ authors:
 version: "1.1.2"
 date-released: 2026-08-25
 repository-code: "https://github.com/SebRoLENS/opus2txt"
-url: "https://github.com/SebRoLENS/opus2txt/releases/tag/v1.1.2"
+doi: "10.5281/zenodo.22094523"
+url: "https://doi.org/10.5281/zenodo.22094523"
 license: MIT
