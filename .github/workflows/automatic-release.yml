@@ -14,7 +14,7 @@ permissions:
   actions: write
 
 concurrency:
-  group: automatic-release
+  group: automatic-release-offscreen
   cancel-in-progress: true
 
 jobs:
@@ -149,7 +149,7 @@ jobs:
 
   sync-zenodo-doi:
     needs: prepare-release
-    if: ${{ always() && needs.prepare-release.outputs.version != '' }}
+    if: ${{ needs.prepare-release.result == 'success' && needs.prepare-release.outputs.version != '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
