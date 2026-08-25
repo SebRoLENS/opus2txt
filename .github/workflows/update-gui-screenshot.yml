@@ -46,7 +46,7 @@ jobs:
 
           try:
               from PySide6.QtCore import Qt
-              from PySide6.QtGui import QPainter, QPixmap
+              from PySide6.QtGui import QPixmap
               from PySide6.QtWidgets import QApplication
               from opus2txt import MainWindow
 
@@ -58,9 +58,7 @@ jobs:
 
               pixmap = QPixmap(window.size())
               pixmap.fill(Qt.GlobalColor.transparent)
-              painter = QPainter(pixmap)
-              window.render(painter)
-              painter.end()
+              window.render(pixmap)
 
               if pixmap.isNull() or not pixmap.save(str(target), 'PNG'):
                   raise RuntimeError('Could not save GUI screenshot')
