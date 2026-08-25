@@ -28,17 +28,16 @@ jobs:
       - name: Install screenshot dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            xvfb libegl1 libgl1 libopengl0 \
-            libxkbcommon-x11-0 libxcb-cursor0 libxcb-xinerama0 \
-            libxcb-keysyms1 libxcb-render-util0
+          sudo apt-get install -y libegl1 libgl1 libopengl0
           python -m pip install --upgrade pip
           python -m pip install PySide6 brukeropus
 
       - name: Capture current GUI or record diagnostic
+        env:
+          QT_QPA_PLATFORM: offscreen
         run: |
           mkdir -p docs
-          xvfb-run -a python - <<'PY'
+          python - <<'PY'
           from pathlib import Path
           import traceback
 
@@ -46,18 +45,23 @@ jobs:
           target = Path('docs/opus2txt_gui.png')
 
           try:
+              from PySide6.QtCore import Qt
+              from PySide6.QtGui import QPainter, QPixmap
               from PySide6.QtWidgets import QApplication
               from opus2txt import MainWindow
 
               app = QApplication([])
               window = MainWindow()
+              window.ensurePolished()
               window.show()
               app.processEvents()
-              window.raise_()
-              window.activateWindow()
-              app.processEvents()
 
-              pixmap = window.grab()
+              pixmap = QPixmap(window.size())
+              pixmap.fill(Qt.GlobalColor.transparent)
+              painter = QPainter(pixmap)
+              window.render(painter)
+              painter.end()
+
               if pixmap.isNull() or not pixmap.save(str(target), 'PNG'):
                   raise RuntimeError('Could not save GUI screenshot')
 
