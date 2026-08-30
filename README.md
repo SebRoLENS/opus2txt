@@ -1,10 +1,16 @@
-# opus2txt
+<p align="center">
+  <img src="packaging/readme-icon.svg" width="112" alt="opus2txt icon">
+</p>
 
-[![Version](https://img.shields.io/github/v/release/SebRoLENS/opus2txt)](https://github.com/SebRoLENS/opus2txt/releases/latest)
-[![Windows](https://img.shields.io/badge/Windows-x86__64-0078D4?logo=windows)](https://github.com/SebRoLENS/opus2txt/releases/latest)
-[![Linux](https://img.shields.io/badge/Linux-x86__64-FCC624?logo=linux&logoColor=black)](https://github.com/SebRoLENS/opus2txt/releases/latest)
-[![macOS](https://img.shields.io/badge/macOS-Intel%20%7C%20Apple%20Silicon-000000?logo=apple)](https://github.com/SebRoLENS/opus2txt/releases/latest)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22095286.svg)](https://doi.org/10.5281/zenodo.22095286)
+<h1 align="center">opus2txt</h1>
+
+<p align="center">
+  <a href="https://github.com/SebRoLENS/opus2txt/releases/latest"><img src="https://img.shields.io/github/v/release/SebRoLENS/opus2txt" alt="Version"></a>
+  <a href="https://github.com/SebRoLENS/opus2txt/releases/latest"><img src="https://img.shields.io/badge/Windows-x86__64-0078D4?logo=windows" alt="Windows"></a>
+  <a href="https://github.com/SebRoLENS/opus2txt/releases/latest"><img src="https://img.shields.io/badge/Linux-x86__64-FCC624?logo=linux&logoColor=black" alt="Linux"></a>
+  <a href="https://github.com/SebRoLENS/opus2txt/releases/latest"><img src="https://img.shields.io/badge/macOS-Intel%20%7C%20Apple%20Silicon-000000?logo=apple" alt="macOS"></a>
+  <a href="https://doi.org/10.5281/zenodo.22095286"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.22095286.svg" alt="DOI"></a>
+</p>
 
 `opus2txt` is a graphical utility for extracting spectroscopy data from Bruker OPUS files into simple plain-text datasets and, when sample/background single-ray spectra are available, calculating absorbance spectra.
 
