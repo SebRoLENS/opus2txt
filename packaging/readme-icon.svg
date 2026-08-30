@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+  <title id="title">opus2txt icon</title>
+  <rect width="128" height="128" rx="28" fill="#1c679a"/>
+  <path d="M31 29h45l21 21v49H31z" fill="#fff" opacity="0.96"/>
+  <path d="M76 29v22h21" fill="#b9dbea"/>
+  <path d="M41 78c8-2 10-17 17-17 8 0 7 23 15 23 7 0 10-14 15-14" fill="none" stroke="#1c679a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M43 94h43" stroke="#1c679a" stroke-width="5" stroke-linecap="round" opacity="0.55"/>
+</svg>
