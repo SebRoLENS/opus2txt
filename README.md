@@ -9,7 +9,7 @@
   <a href="https://github.com/SebRoLENS/opus2txt/releases/latest"><img src="https://img.shields.io/badge/Windows-x86__64-0078D4?logo=windows" alt="Windows"></a>
   <a href="https://github.com/SebRoLENS/opus2txt/releases/latest"><img src="https://img.shields.io/badge/Linux-x86__64-FCC624?logo=linux&logoColor=black" alt="Linux"></a>
   <a href="https://github.com/SebRoLENS/opus2txt/releases/latest"><img src="https://img.shields.io/badge/macOS-Intel%20%7C%20Apple%20Silicon-000000?logo=apple" alt="macOS"></a>
-  <a href="https://doi.org/10.5281/zenodo.22095286"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.22095286.svg" alt="DOI"></a>
+  <a href="https://github.com/SebRoLENS/opus2txt/releases/latest"><img src="https://img.shields.io/badge/DOI-pending-lightgrey" alt="DOI"></a>
 </p>
 
 `opus2txt` is a graphical utility for extracting spectroscopy data from Bruker OPUS files into simple plain-text datasets and, when sample/background single-ray spectra are available, calculating absorbance spectra.
@@ -124,15 +124,15 @@ Detailed usage documentation is available in:
 
 ## Version
 
-Current public version: **1.1.5**
+Current public version: **1.1.6**
 
 ## How to cite
 
 If opus2txt contributes to published research, please acknowledge or cite the software. GitHub also provides a **Cite this repository** entry from [`CITATION.cff`](CITATION.cff).
 
-> Romi, S. (2026). *opus2txt* (Version 1.1.5) [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.22095286
+Version **1.1.6** is archived automatically on Zenodo after the GitHub release is published. The DOI for this release is being assigned and will be inserted here automatically.
 
-DOI: [**10.5281/zenodo.22095286**](https://doi.org/10.5281/zenodo.22095286)
+> Romi, S. (2026). *opus2txt* (Version 1.1.6) [Computer software]. GitHub. https://github.com/SebRoLENS/opus2txt/releases/tag/v1.1.6
 
 Previous releases remain archived separately on Zenodo.
 
