@@ -124,15 +124,15 @@ Detailed usage documentation is available in:
 
 ## Version
 
-Current public version: **1.1.6**
+Current public version: **1.1.7**
 
 ## How to cite
 
 If opus2txt contributes to published research, please acknowledge or cite the software. GitHub also provides a **Cite this repository** entry from [`CITATION.cff`](CITATION.cff).
 
-Version **1.1.6** is archived automatically on Zenodo after the GitHub release is published. The DOI for this release is being assigned and will be inserted here automatically.
+Version **1.1.7** is archived automatically on Zenodo after the GitHub release is published. The DOI for this release is being assigned and will be inserted here automatically.
 
-> Romi, S. (2026). *opus2txt* (Version 1.1.6) [Computer software]. GitHub. https://github.com/SebRoLENS/opus2txt/releases/tag/v1.1.6
+> Romi, S. (2026). *opus2txt* (Version 1.1.7) [Computer software]. GitHub. https://github.com/SebRoLENS/opus2txt/releases/tag/v1.1.7
 
 Previous releases remain archived separately on Zenodo.
 
