@@ -68,6 +68,8 @@ jobs:
         run: |
           set -euxo pipefail
           mkdir -p opus2txt.AppDir/usr/lib/opus2txt
+          # Use the desktop's matching XKB libraries for keyboard input in Qt.
+          rm -f dist/opus2txt/_internal/libxkbcommon*.so*
           cp -a dist/opus2txt/. opus2txt.AppDir/usr/lib/opus2txt/
           cp packaging/linux/opus2txt.desktop opus2txt.AppDir/opus2txt.desktop
           cp packaging/opus2txt_icon.png opus2txt.AppDir/opus2txt.png
