@@ -207,7 +207,7 @@ If neither a valid sample/background single-ray calculation nor a pre-calculated
 
 ## Existing output directories
 
-The `ABS`, `SRay`, and `METADATA` directories are created automatically when needed. Existing directories are reused; therefore output from multiple compatible processing runs can be directed to the same parent directory if desired.
+Both workflows keep the full OPUS filename. For example, the single-ray exports from `sample.0` and `sample.1` are `SRay/sample.0_SRay.txt` and `SRay/sample.1_SRay.txt`. If any output for a name already exists, the new export adds `_2`, `_3` or the next available number before the data type. All outputs for that measurement share this suffix. You can convert another batch into the same directory and retain the previous results.
 
 ## Remembered input directory
 

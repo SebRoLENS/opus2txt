@@ -56,7 +56,7 @@ For each selected file, the program can export:
 - `SRay/<name>_SRay.txt` — single-ray spectrum, when an OPUS single-ray block (`sm`) is present;
 - `METADATA/<name>_META.txt` — parameters and metadata reported by `brukeropus`.
 
-The `ABS`, `SRay`, and `METADATA` directories are created automatically inside the selected output directory.
+The `ABS`, `SRay`, and `METADATA` directories are created automatically inside the selected output directory. Both workflows keep the numeric OPUS extension in each output name, so `sample.0` and `sample.1` produce separate datasets. When an output name is already in use, the entire new set gets the next available suffix, such as `sample.0_2_ABS.txt`.
 
 ### Calculate absorbance from sample and background
 

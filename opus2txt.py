@@ -7,13 +7,16 @@
 # ]
 # ///
 
-import io
 import json
 import math
 import os
 import subprocess
 import sys
+from collections.abc import Iterator
+from contextlib import ExitStack, contextmanager, redirect_stdout
+from itertools import count
 from pathlib import Path
+from typing import TextIO
 
 try:
     from PySide6.QtCore import QSettings, Qt
@@ -180,102 +183,89 @@ def has_numeric_extension(path: str | Path) -> bool:
     return len(suffix) > 1 and suffix[1:].isdigit()
 
 
+@contextmanager
+def open_export_files(
+    source: str, output_dir: str, *, absorbance: bool, single_ray: bool
+) -> Iterator[dict[str, TextIO]]:
+    """Reserve one common name for the sample and remove incomplete exports on error."""
+    root = Path(output_dir)
+    directories = {"META": root / "METADATA", "ABS": root / "ABS", "SRay": root / "SRay"}
+    for directory in directories.values():
+        directory.mkdir(parents=True, exist_ok=True)
+
+    kinds = ["META"]
+    if absorbance:
+        kinds.append("ABS")
+    if single_ray:
+        kinds.append("SRay")
+
+    source_name = Path(source).name
+    for number in count(1):
+        name = source_name if number == 1 else f"{source_name}_{number}"
+        paths = {kind: directory / f"{name}_{kind}.txt" for kind, directory in directories.items()}
+        if any(os.path.lexists(path) for path in paths.values()):
+            continue
+
+        with ExitStack() as rollback:
+            with ExitStack() as handles:
+                files = {}
+                try:
+                    for kind in kinds:
+                        path = paths[kind]
+                        files[kind] = handles.enter_context(path.open("x", encoding="utf-8"))
+                        rollback.callback(path.unlink)
+                except FileExistsError:
+                    # Another export claimed this name after the initial check.
+                    continue
+                yield files
+            rollback.pop_all()
+        return
+
+
+def write_spectrum(file: TextIO, x_values, y_values, quantity: str) -> None:
+    file.write(f"wavenumber\t{quantity}\n")
+    for x_value, y_value in zip(x_values, y_values):
+        file.write(f"{x_value}\t{y_value}\n")
+
+
 def process_opus_file(input_file: str, output_dir: str) -> None:
     """Extract absorbance, single-ray data and metadata from one OPUS file."""
-    abs_dir = Path(output_dir) / "ABS"
-    sray_dir = Path(output_dir) / "SRay"
-    metadata_dir = Path(output_dir) / "METADATA"
-
-    abs_dir.mkdir(parents=True, exist_ok=True)
-    sray_dir.mkdir(parents=True, exist_ok=True)
-    metadata_dir.mkdir(parents=True, exist_ok=True)
-
     opus_file = read_opus(input_file)
-    base_name = Path(input_file).stem
-
-    old_stdout = sys.stdout
-    buffer = io.StringIO()
-    try:
-        sys.stdout = buffer
-        opus_file.print_parameters()
-    finally:
-        sys.stdout = old_stdout
-
-    metadata_filepath = metadata_dir / f"{base_name}_META.txt"
-    metadata_filepath.write_text(buffer.getvalue(), encoding="utf-8")
-
-    if "a" in opus_file.data_keys:
-        output_file = abs_dir / f"{base_name}_ABS.txt"
-        with output_file.open("w", encoding="utf-8") as file:
-            file.write("wavenumber\tabsorbance\n")
-            for x_value, y_value in zip(opus_file.a.x, opus_file.a.y):
-                file.write(f"{x_value}\t{y_value}\n")
-
-    if "sm" in opus_file.data_keys:
-        output_file = sray_dir / f"{base_name}_SRay.txt"
-        with output_file.open("w", encoding="utf-8") as file:
-            file.write("wavenumber\ttransmittance\n")
-            for x_value, y_value in zip(opus_file.sm.x, opus_file.sm.y):
-                file.write(f"{x_value}\t{y_value}\n")
+    has_abs = "a" in opus_file.data_keys
+    has_sray = "sm" in opus_file.data_keys
+    with open_export_files(input_file, output_dir, absorbance=has_abs, single_ray=has_sray) as files:
+        with redirect_stdout(files["META"]):
+            opus_file.print_parameters()
+        if has_abs:
+            write_spectrum(files["ABS"], opus_file.a.x, opus_file.a.y, "absorbance")
+        if has_sray:
+            write_spectrum(files["SRay"], opus_file.sm.x, opus_file.sm.y, "transmittance")
 
 
 def process_opus_absorbance(sample_file: str, bg_file: str, output_dir: str) -> None:
     """Calculate absorbance from sample and background OPUS files and export datasets."""
-    abs_dir = Path(output_dir) / "ABS"
-    sray_dir = Path(output_dir) / "SRay"
-    metadata_dir = Path(output_dir) / "METADATA"
-
-    abs_dir.mkdir(parents=True, exist_ok=True)
-    sray_dir.mkdir(parents=True, exist_ok=True)
-    metadata_dir.mkdir(parents=True, exist_ok=True)
-
     sample_opus = read_opus(sample_file)
     bg_opus = read_opus(bg_file)
-
-    base_name = Path(sample_file).stem
-
-    # Export Metadata
-    old_stdout = sys.stdout
-    buffer = io.StringIO()
-    try:
-        sys.stdout = buffer
-        sample_opus.print_parameters()
-    finally:
-        sys.stdout = old_stdout
-
-    metadata_filepath = metadata_dir / f"{base_name}_META.txt"
-    metadata_filepath.write_text(buffer.getvalue(), encoding="utf-8")
-
-    # Export SRay for sample if available
-    if "sm" in sample_opus.data_keys:
-        output_file = sray_dir / f"{base_name}_SRay.txt"
-        with output_file.open("w", encoding="utf-8") as file:
-            file.write("wavenumber\ttransmittance\n")
-            for x_value, y_value in zip(sample_opus.sm.x, sample_opus.sm.y):
-                file.write(f"{x_value}\t{y_value}\n")
-
-    # Compute Absorbance: A = -log10(S_sample / S_bg) = log10(S_bg / S_sample)
-    if "sm" in sample_opus.data_keys and "sm" in bg_opus.data_keys:
-        output_file = abs_dir / f"{base_name}_ABS.txt"
-        with output_file.open("w", encoding="utf-8") as file:
-            file.write("wavenumber\tabsorbance\n")
-            for x_val, y_sample, y_bg in zip(
-                sample_opus.sm.x, sample_opus.sm.y, bg_opus.sm.y
-            ):
-                if y_sample > 0 and y_bg > 0:
-                    abs_val = math.log10(y_bg / y_sample)
-                else:
-                    abs_val = 0.0
-                file.write(f"{x_val}\t{abs_val}\n")
-    elif "a" in sample_opus.data_keys:
-        # Fallback to pre-calculated absorbance if single-ray data is unavailable
-        output_file = abs_dir / f"{base_name}_ABS.txt"
-        with output_file.open("w", encoding="utf-8") as file:
-            file.write("wavenumber\tabsorbance\n")
-            for x_value, y_value in zip(sample_opus.a.x, sample_opus.a.y):
-                file.write(f"{x_value}\t{y_value}\n")
-    else:
+    has_sray = "sm" in sample_opus.data_keys
+    calculate = has_sray and "sm" in bg_opus.data_keys
+    if not calculate and "a" not in sample_opus.data_keys:
         raise ValueError(f"Missing single-ray (sm) data in {Path(sample_file).name} or background file.")
+
+    with open_export_files(sample_file, output_dir, absorbance=True, single_ray=has_sray) as files:
+        with redirect_stdout(files["META"]):
+            sample_opus.print_parameters()
+        if has_sray:
+            write_spectrum(files["SRay"], sample_opus.sm.x, sample_opus.sm.y, "transmittance")
+
+        if calculate:
+            # A = -log10(S_sample / S_bg) = log10(S_bg / S_sample)
+            absorbance = (
+                math.log10(y_bg / y_sample) if y_sample > 0 and y_bg > 0 else 0.0
+                for y_sample, y_bg in zip(sample_opus.sm.y, bg_opus.sm.y)
+            )
+            write_spectrum(files["ABS"], sample_opus.sm.x, absorbance, "absorbance")
+        else:
+            write_spectrum(files["ABS"], sample_opus.a.x, sample_opus.a.y, "absorbance")
 
 
 class AbsorbanceDialog(QDialog):
